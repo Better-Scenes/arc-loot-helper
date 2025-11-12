@@ -9,8 +9,15 @@ import { Badge } from './badge'
 
 interface ItemListRowProps {
 	item: Item
-	quantityNeeded?: number
-	requiredFor?: Array<'quests' | 'hideout' | 'projects'>
+	requirements?: {
+		total: number
+		quests: number
+		hideout: number
+		projects: number
+		sources: Set<'quests' | 'hideout' | 'projects'>
+	}
+	usedInRecipes?: Array<{ itemId: string; itemName: string; quantity: number }>
+	recycledFrom?: Array<{ itemId: string; itemName: string; recycleQty?: number; salvageQty?: number }>
 }
 
 /**
@@ -29,9 +36,14 @@ function getRarityColor(
 	return 'zinc'
 }
 
-export function ItemListRow({ item, quantityNeeded, requiredFor }: ItemListRowProps) {
+export function ItemListRow({ item, requirements, usedInRecipes, recycledFrom }: ItemListRowProps) {
 	const rarityColor = getRarityColor(item.rarity)
-	const isSafeToSalvage = !requiredFor || requiredFor.length === 0
+	const isNotRequired = !requirements
+	const isRequired = !!requirements
+	const isIngredient = usedInRecipes && usedInRecipes.length > 0
+	const isCraftable = !!item.recipe
+	const isReclaimed = recycledFrom && recycledFrom.length > 0
+	const isRecyclable = (item.recyclesInto && Object.keys(item.recyclesInto).length > 0) || (item.salvagesInto && Object.keys(item.salvagesInto).length > 0)
 	const stackSize = item.stackSize || 1
 
 	const imageUrl =
@@ -90,15 +102,65 @@ export function ItemListRow({ item, quantityNeeded, requiredFor }: ItemListRowPr
 				</div>
 			</div>
 
-			{/* Status Badge */}
-			<div className="flex-shrink-0">
-				{isSafeToSalvage ? (
-					<Badge color="green" className="text-[10px] px-1.5 py-0.5">
-						Safe
+			{/* Status Badges */}
+			<div className="flex flex-shrink-0 items-center gap-1">
+				{isRequired && (
+					<Badge
+						color="blue"
+						className="text-[10px] px-1.5 py-0.5"
+						title={`Required: ${requirements.quests > 0 ? `${requirements.quests} for quests` : ''}${requirements.quests > 0 && (requirements.hideout > 0 || requirements.projects > 0) ? ', ' : ''}${requirements.hideout > 0 ? `${requirements.hideout} for hideout` : ''}${requirements.hideout > 0 && requirements.projects > 0 ? ', ' : ''}${requirements.projects > 0 ? `${requirements.projects} for projects` : ''} (Total: ×${requirements.total})`}
+					>
+						Required
 					</Badge>
-				) : (
-					<Badge color="blue" className="text-[10px] px-1.5 py-0.5">
-						Need {quantityNeeded && `×${quantityNeeded}`}
+				)}
+
+				{isNotRequired && (
+					<Badge
+						color="green"
+						className="text-[10px] px-1.5 py-0.5"
+						title="This item is not required for any quests, hideout upgrades, or projects"
+					>
+						Not Required
+					</Badge>
+				)}
+
+				{isIngredient && (
+					<Badge
+						color="purple"
+						className="text-[10px] px-1.5 py-0.5"
+						title="This item is used as an ingredient in crafting recipes"
+					>
+						Ingredient
+					</Badge>
+				)}
+
+				{isCraftable && (
+					<Badge
+						color="sky"
+						className="text-[10px] px-1.5 py-0.5"
+						title="This item can be crafted from other items"
+					>
+						Craftable
+					</Badge>
+				)}
+
+				{isReclaimed && (
+					<Badge
+						color="lime"
+						className="text-[10px] px-1.5 py-0.5"
+						title="This item can be obtained by recycling or salvaging other items"
+					>
+						Reclaimed
+					</Badge>
+				)}
+
+				{isRecyclable && (
+					<Badge
+						color="lime"
+						className="text-[10px] px-1.5 py-0.5"
+						title="This item can be recycled or salvaged into materials"
+					>
+						Recyclable
 					</Badge>
 				)}
 			</div>

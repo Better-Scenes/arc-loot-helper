@@ -36,6 +36,7 @@ export function ItemList() {
 		sortField: 'name',
 		sortDirection: 'asc',
 		displayMode: 'grid',
+		showDetails: false,
 	})
 
 	// Calculate what recipes use each item
@@ -132,7 +133,13 @@ export function ItemList() {
 
 		const requirements = new Map<
 			string,
-			{ total: number; sources: Set<'quests' | 'hideout' | 'projects'> }
+			{
+				total: number
+				quests: number
+				hideout: number
+				projects: number
+				sources: Set<'quests' | 'hideout' | 'projects'>
+			}
 		>()
 
 		// Aggregate quest requirements
@@ -141,9 +148,13 @@ export function ItemList() {
 				for (const entry of quest.requiredItemIds) {
 					const current = requirements.get(entry.itemId) || {
 						total: 0,
+						quests: 0,
+						hideout: 0,
+						projects: 0,
 						sources: new Set(),
 					}
 					current.total += entry.quantity
+					current.quests += entry.quantity
 					current.sources.add('quests')
 					requirements.set(entry.itemId, current)
 				}
@@ -157,9 +168,13 @@ export function ItemList() {
 					for (const entry of level.requirementItemIds) {
 						const current = requirements.get(entry.itemId) || {
 							total: 0,
+							quests: 0,
+							hideout: 0,
+							projects: 0,
 							sources: new Set(),
 						}
 						current.total += entry.quantity
+						current.hideout += entry.quantity
 						current.sources.add('hideout')
 						requirements.set(entry.itemId, current)
 					}
@@ -174,9 +189,13 @@ export function ItemList() {
 					for (const entry of phase.requirementItemIds) {
 						const current = requirements.get(entry.itemId) || {
 							total: 0,
+							quests: 0,
+							hideout: 0,
+							projects: 0,
 							sources: new Set(),
 						}
 						current.total += entry.quantity
+						current.projects += entry.quantity
 						current.sources.add('projects')
 						requirements.set(entry.itemId, current)
 					}
@@ -229,7 +248,7 @@ export function ItemList() {
 
 				// Check if item matches any selected requirement filter
 				const matchesFilter = filters.requirements.some(reqFilter => {
-					if (reqFilter === 'safe') return isSafe
+					if (reqFilter === 'not-required') return isSafe
 					if (reqFilter === 'quests') return req?.sources.has('quests')
 					if (reqFilter === 'hideout') return req?.sources.has('hideout')
 					if (reqFilter === 'projects') return req?.sources.has('projects')
@@ -313,13 +332,13 @@ export function ItemList() {
 				'Quest Items': [],
 				'Hideout Items': [],
 				'Project Items': [],
-				'Safe to Salvage': [],
+				'Not Required': [],
 			}
 
 			for (const item of sortedItems) {
 				const req = itemRequirements.get(item.id)
 				if (!req) {
-					groups['Safe to Salvage'].push(item)
+					groups['Not Required'].push(item)
 				} else {
 					if (req.sources.has('quests')) groups['Quest Items'].push(item)
 					if (req.sources.has('hideout')) groups['Hideout Items'].push(item)
@@ -411,12 +430,15 @@ export function ItemList() {
 							<div className="space-y-2">
 								{group.items.map(item => {
 									const req = itemRequirements.get(item.id)
+									const recipes = usedInRecipes.get(item.id)
+									const sources = recycledFrom.get(item.id)
 									return (
 										<ItemListRow
 											key={`${group.title}-${item.id}`}
 											item={item}
-											quantityNeeded={req?.total}
-											requiredFor={req ? Array.from(req.sources) : undefined}
+											requirements={req}
+											usedInRecipes={recipes}
+											recycledFrom={sources}
 										/>
 									)
 								})}
@@ -431,11 +453,11 @@ export function ItemList() {
 										<ItemCard
 											key={`${group.title}-${item.id}`}
 											item={item}
-											quantityNeeded={req?.total}
-											requiredFor={req ? Array.from(req.sources) : undefined}
+											requirements={req}
 											usedInRecipes={recipes}
 											recycledFrom={sources}
 											allItems={items || []}
+											showDetails={filters.showDetails}
 										/>
 									)
 								})}

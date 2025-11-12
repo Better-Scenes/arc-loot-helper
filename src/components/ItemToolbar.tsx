@@ -33,7 +33,7 @@ const requirementOptions: Array<{
 	{ value: 'quests', label: 'Quest Items' },
 	{ value: 'hideout', label: 'Hideout Items' },
 	{ value: 'projects', label: 'Project Items' },
-	{ value: 'safe', label: 'Safe to Salvage' },
+	{ value: 'not-required', label: 'Not Required' },
 ]
 
 const rarityOptions: Array<{
@@ -100,6 +100,7 @@ export function ItemToolbar({ filters, onFilterChange, itemCount, filteredCount 
 			sortField: 'name',
 			sortDirection: 'asc',
 			displayMode: filters.displayMode,
+			showDetails: filters.showDetails,
 		})
 	}
 
@@ -235,6 +236,15 @@ export function ItemToolbar({ filters, onFilterChange, itemCount, filteredCount 
 					<ListBulletIcon className="size-4" />
 				</Button>
 			</div>
+
+			{/* Show Details Toggle */}
+			<Button
+				outline
+				onClick={() => onFilterChange({ ...filters, showDetails: !filters.showDetails })}
+				className={filters.showDetails ? 'bg-white/10' : ''}
+			>
+				Show Details
+			</Button>
 
 			{/* Item Count */}
 			<div className="ml-auto text-sm text-zinc-400">

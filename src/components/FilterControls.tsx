@@ -11,7 +11,7 @@ import { Text } from './text'
 import type { NormalizedItemType } from '../utils/normalizeGameData'
 
 export type GroupByOption = 'none' | 'requirement' | 'rarity' | 'type'
-export type RequirementFilter = 'quests' | 'hideout' | 'projects' | 'safe'
+export type RequirementFilter = 'quests' | 'hideout' | 'projects' | 'not-required'
 export type RarityFilter = 'common' | 'uncommon' | 'rare' | 'legendary'
 export type SortField = 'name' | 'type' | 'value'
 export type SortDirection = 'asc' | 'desc'
@@ -25,6 +25,7 @@ export interface FilterState {
 	sortField: SortField
 	sortDirection: SortDirection
 	displayMode: DisplayMode
+	showDetails: boolean
 }
 
 interface FilterControlsProps {
@@ -60,9 +61,9 @@ const requirementOptions: Array<{
 		description: 'Items needed for expedition projects',
 	},
 	{
-		value: 'safe',
-		label: 'Safe to Salvage',
-		description: 'Items not required for progression',
+		value: 'not-required',
+		label: 'Not Required',
+		description: 'Items not required for quests, hideout, or projects',
 	},
 ]
 

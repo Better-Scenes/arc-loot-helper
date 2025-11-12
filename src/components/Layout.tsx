@@ -8,6 +8,7 @@ import { Outlet, useLocation } from 'react-router-dom'
 import { Sidebar, SidebarBody, SidebarHeader, SidebarItem, SidebarSection } from './sidebar'
 import { SidebarLayout } from './sidebar-layout'
 import { Navbar, NavbarSection } from './navbar'
+import { Footer } from './Footer'
 
 /**
  * Application sidebar with navigation links
@@ -75,6 +76,7 @@ export function Layout() {
 	return (
 		<SidebarLayout navbar={<AppNavbar />} sidebar={<AppSidebar />}>
 			<Outlet />
+			<Footer />
 		</SidebarLayout>
 	)
 }
