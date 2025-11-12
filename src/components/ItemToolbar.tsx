@@ -10,7 +10,8 @@ import { Button } from './button'
 import { ArrowUpIcon, ArrowDownIcon } from '@heroicons/react/16/solid'
 import { Squares2X2Icon, ListBulletIcon } from '@heroicons/react/20/solid'
 import { NORMALIZED_TYPE_ORDER, type NormalizedItemType } from '../utils/normalizeGameData'
-import type { FilterState, GroupByOption, RequirementFilter, RarityFilter, SortField, DisplayMode } from './FilterControls'
+import type { FilterState, GroupByOption, RarityFilter, SortField, DisplayMode } from './FilterControls'
+import { TriStateCheckbox, type FilterMode } from './TriStateCheckbox'
 
 interface ItemToolbarProps {
 	filters: FilterState
@@ -26,25 +27,27 @@ const groupByOptions: Array<{ value: GroupByOption; label: string }> = [
 	{ value: 'type', label: 'By Type' },
 ]
 
-const requirementOptions: Array<{
-	value: RequirementFilter
-	label: string
-}> = [
-	{ value: 'quests', label: 'Quest Items' },
-	{ value: 'hideout', label: 'Hideout Items' },
-	{ value: 'projects', label: 'Project Items' },
-	{ value: 'not-required', label: 'Not Required' },
-]
+const metaFilterOptions = {
+	requirements: [
+		{ key: 'required' as const, label: 'Required' },
+		{ key: 'quests' as const, label: 'Quest Items' },
+		{ key: 'hideout' as const, label: 'Hideout Items' },
+		{ key: 'projects' as const, label: 'Project Items' },
+	],
+	crafting: [
+		{ key: 'craftable' as const, label: 'Craftable' },
+		{ key: 'ingredient' as const, label: 'Ingredient' },
+		{ key: 'recyclable' as const, label: 'Recyclable' },
+		{ key: 'reclaimed' as const, label: 'Reclaimed' },
+	],
+}
 
-const rarityOptions: Array<{
-	value: RarityFilter
-	label: string
-	color: string
-}> = [
-	{ value: 'common', label: 'Common', color: 'text-zinc-400' },
-	{ value: 'uncommon', label: 'Uncommon', color: 'text-green-400' },
-	{ value: 'rare', label: 'Rare', color: 'text-blue-400' },
-	{ value: 'legendary', label: 'Legendary', color: 'text-orange-400' },
+const rarityOptions = [
+	{ key: 'common' as const, label: 'Common' },
+	{ key: 'uncommon' as const, label: 'Uncommon' },
+	{ key: 'rare' as const, label: 'Rare' },
+	{ key: 'epic' as const, label: 'Epic' },
+	{ key: 'legendary' as const, label: 'Legendary' },
 ]
 
 const sortFieldOptions: Array<{ value: SortField; label: string }> = [
@@ -58,25 +61,34 @@ export function ItemToolbar({ filters, onFilterChange, itemCount, filteredCount 
 		onFilterChange({ ...filters, groupBy: value })
 	}
 
-	const handleRequirementToggle = (value: RequirementFilter) => {
-		const newRequirements = filters.requirements.includes(value)
-			? filters.requirements.filter(r => r !== value)
-			: [...filters.requirements, value]
-		onFilterChange({ ...filters, requirements: newRequirements })
+	const handleMetaFilterChange = (key: keyof typeof filters.metaFilters, value: FilterMode) => {
+		onFilterChange({
+			...filters,
+			metaFilters: {
+				...filters.metaFilters,
+				[key]: value,
+			},
+		})
 	}
 
-	const handleRarityToggle = (value: RarityFilter) => {
-		const newRarities = filters.rarities.includes(value)
-			? filters.rarities.filter(r => r !== value)
-			: [...filters.rarities, value]
-		onFilterChange({ ...filters, rarities: newRarities })
+	const handleRarityFilterChange = (key: keyof typeof filters.rarityFilters, value: FilterMode) => {
+		onFilterChange({
+			...filters,
+			rarityFilters: {
+				...filters.rarityFilters,
+				[key]: value,
+			},
+		})
 	}
 
-	const handleCategoryToggle = (value: NormalizedItemType) => {
-		const newCategories = filters.categories.includes(value)
-			? filters.categories.filter(c => c !== value)
-			: [...filters.categories, value]
-		onFilterChange({ ...filters, categories: newCategories })
+	const handleCategoryFilterChange = (key: NormalizedItemType, value: FilterMode) => {
+		onFilterChange({
+			...filters,
+			categoryFilters: {
+				...filters.categoryFilters,
+				[key]: value,
+			},
+		})
 	}
 
 	const handleSortFieldChange = (value: SortField) => {
@@ -94,9 +106,34 @@ export function ItemToolbar({ filters, onFilterChange, itemCount, filteredCount 
 	const clearAllFilters = () => {
 		onFilterChange({
 			groupBy: 'none',
-			requirements: [],
-			rarities: [],
-			categories: [],
+			metaFilters: {
+				required: 'ignore',
+				quests: 'ignore',
+				hideout: 'ignore',
+				projects: 'ignore',
+				craftable: 'ignore',
+				ingredient: 'ignore',
+				recyclable: 'ignore',
+				reclaimed: 'ignore',
+			},
+			rarityFilters: {
+				common: 'ignore',
+				uncommon: 'ignore',
+				rare: 'ignore',
+				legendary: 'ignore',
+				epic: 'ignore',
+			},
+			categoryFilters: {
+				'Augments': 'ignore',
+				'Shields': 'ignore',
+				'Weapons': 'ignore',
+				'Ammunition': 'ignore',
+				'Weapon Mods': 'ignore',
+				'Quick Use': 'ignore',
+				'Keys': 'ignore',
+				'Crafting Materials': 'ignore',
+				'Misc': 'ignore',
+			},
 			sortField: 'name',
 			sortDirection: 'asc',
 			displayMode: filters.displayMode,
@@ -106,8 +143,13 @@ export function ItemToolbar({ filters, onFilterChange, itemCount, filteredCount 
 
 	const selectedGroupBy = groupByOptions.find(opt => opt.value === filters.groupBy) || groupByOptions[0]
 	const selectedSortField = sortFieldOptions.find(opt => opt.value === filters.sortField) || sortFieldOptions[0]
-	const hasActiveFilters = filters.requirements.length > 0 || filters.rarities.length > 0 || filters.categories.length > 0
-	const activeFilterCount = filters.requirements.length + filters.rarities.length + filters.categories.length
+
+	// Count active filters (non-ignore states)
+	const activeMetaFilterCount = Object.values(filters.metaFilters).filter(v => v !== 'ignore').length
+	const activeRarityFilterCount = Object.values(filters.rarityFilters).filter(v => v !== 'ignore').length
+	const activeCategoryFilterCount = Object.values(filters.categoryFilters).filter(v => v !== 'ignore').length
+	const hasActiveFilters = activeMetaFilterCount > 0 || activeRarityFilterCount > 0 || activeCategoryFilterCount > 0
+	const activeFilterCount = activeMetaFilterCount + activeRarityFilterCount + activeCategoryFilterCount
 
 	return (
 		<div className="flex flex-wrap items-center gap-2 rounded-lg border border-white/10 bg-zinc-900 px-4 py-3">
@@ -131,54 +173,74 @@ export function ItemToolbar({ filters, onFilterChange, itemCount, filteredCount 
 					<span className="text-zinc-400">Filter:</span>{' '}
 					{hasActiveFilters ? `${activeFilterCount} active` : 'All Items'}
 				</DropdownButton>
-				<DropdownMenu className="w-[600px]">
-					<div className="col-span-full grid grid-cols-3 gap-4 p-3">
+				<DropdownMenu className="w-[800px]">
+					<div className="col-span-full grid grid-cols-4 gap-4 p-3">
 						{/* Requirement Filters */}
 						<div>
-							<div className="mb-2 text-xs font-semibold uppercase tracking-wide text-zinc-500">
-								Requirement
+							<div className="mb-3 text-xs font-semibold uppercase tracking-wide text-zinc-500">
+								Requirements
 							</div>
-							{requirementOptions.map(option => (
-								<CheckboxField key={option.value}>
-									<Checkbox
-										checked={filters.requirements.includes(option.value)}
-										onChange={() => handleRequirementToggle(option.value)}
+							<div className="space-y-2">
+								{metaFilterOptions.requirements.map(option => (
+									<TriStateCheckbox
+										key={option.key}
+										label={option.label}
+										value={filters.metaFilters[option.key]}
+										onChange={(value) => handleMetaFilterChange(option.key, value)}
 									/>
-									<Label>{option.label}</Label>
-								</CheckboxField>
-							))}
+								))}
+							</div>
+						</div>
+
+						{/* Crafting/Materials Filters */}
+						<div>
+							<div className="mb-3 text-xs font-semibold uppercase tracking-wide text-zinc-500">
+								Crafting
+							</div>
+							<div className="space-y-2">
+								{metaFilterOptions.crafting.map(option => (
+									<TriStateCheckbox
+										key={option.key}
+										label={option.label}
+										value={filters.metaFilters[option.key]}
+										onChange={(value) => handleMetaFilterChange(option.key, value)}
+									/>
+								))}
+							</div>
 						</div>
 
 						{/* Rarity Filters */}
 						<div>
-							<div className="mb-2 text-xs font-semibold uppercase tracking-wide text-zinc-500">
+							<div className="mb-3 text-xs font-semibold uppercase tracking-wide text-zinc-500">
 								Rarity
 							</div>
-							{rarityOptions.map(option => (
-								<CheckboxField key={option.value}>
-									<Checkbox
-										checked={filters.rarities.includes(option.value)}
-										onChange={() => handleRarityToggle(option.value)}
+							<div className="space-y-2">
+								{rarityOptions.map(option => (
+									<TriStateCheckbox
+										key={option.key}
+										label={option.label}
+										value={filters.rarityFilters[option.key]}
+										onChange={(value) => handleRarityFilterChange(option.key, value)}
 									/>
-									<Label className={option.color}>{option.label}</Label>
-								</CheckboxField>
-							))}
+								))}
+							</div>
 						</div>
 
 						{/* Category Filters */}
 						<div>
-							<div className="mb-2 text-xs font-semibold uppercase tracking-wide text-zinc-500">
+							<div className="mb-3 text-xs font-semibold uppercase tracking-wide text-zinc-500">
 								Category
 							</div>
-							{NORMALIZED_TYPE_ORDER.map(category => (
-								<CheckboxField key={category}>
-									<Checkbox
-										checked={filters.categories.includes(category)}
-										onChange={() => handleCategoryToggle(category)}
+							<div className="space-y-2">
+								{NORMALIZED_TYPE_ORDER.map(category => (
+									<TriStateCheckbox
+										key={category}
+										label={category}
+										value={filters.categoryFilters[category]}
+										onChange={(value) => handleCategoryFilterChange(category, value)}
 									/>
-									<Label>{category}</Label>
-								</CheckboxField>
-							))}
+								))}
+							</div>
 						</div>
 					</div>
 

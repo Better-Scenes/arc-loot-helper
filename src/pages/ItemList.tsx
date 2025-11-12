@@ -30,9 +30,34 @@ export function ItemList() {
 	const [searchQuery, setSearchQuery] = useState('')
 	const [filters, setFilters] = useState<FilterState>({
 		groupBy: 'none',
-		requirements: [],
-		rarities: [],
-		categories: [],
+		metaFilters: {
+			required: 'ignore',
+			quests: 'ignore',
+			hideout: 'ignore',
+			projects: 'ignore',
+			craftable: 'ignore',
+			ingredient: 'ignore',
+			recyclable: 'ignore',
+			reclaimed: 'ignore',
+		},
+		rarityFilters: {
+			common: 'ignore',
+			uncommon: 'ignore',
+			rare: 'ignore',
+			legendary: 'ignore',
+			epic: 'ignore',
+		},
+		categoryFilters: {
+			'Augments': 'ignore',
+			'Shields': 'ignore',
+			'Weapons': 'ignore',
+			'Ammunition': 'ignore',
+			'Weapon Mods': 'ignore',
+			'Quick Use': 'ignore',
+			'Keys': 'ignore',
+			'Crafting Materials': 'ignore',
+			'Misc': 'ignore',
+		},
 		sortField: 'name',
 		sortDirection: 'asc',
 		displayMode: 'grid',
@@ -224,43 +249,79 @@ export function ItemList() {
 				}
 			}
 
-			// Rarity filter
-			if (filters.rarities.length > 0) {
-				if (!item.rarity) return false
-				const itemRarity = item.rarity.toLowerCase() as 'common' | 'uncommon' | 'rare' | 'legendary'
-				if (!filters.rarities.includes(itemRarity)) {
+			// Rarity tri-state filters
+			const itemRarity = item.rarity?.toLowerCase() as 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary' | undefined
+			for (const [rarity, mode] of Object.entries(filters.rarityFilters)) {
+				if (mode === 'ignore') continue
+
+				const hasRarity = itemRarity === rarity
+
+				// Include: must have this rarity
+				if (mode === 'include' && !hasRarity) {
+					return false
+				}
+
+				// Exclude: must NOT have this rarity
+				if (mode === 'exclude' && hasRarity) {
 					return false
 				}
 			}
 
-			// Category filter
-			if (filters.categories.length > 0) {
-				if (!item.category) return false
-				if (!filters.categories.includes(item.category as any)) {
+			// Category tri-state filters
+			const itemCategory = item.category as keyof typeof filters.categoryFilters | undefined
+			for (const [category, mode] of Object.entries(filters.categoryFilters)) {
+				if (mode === 'ignore') continue
+
+				const hasCategory = itemCategory === category
+
+				// Include: must have this category
+				if (mode === 'include' && !hasCategory) {
+					return false
+				}
+
+				// Exclude: must NOT have this category
+				if (mode === 'exclude' && hasCategory) {
 					return false
 				}
 			}
 
-			// Requirement filter
-			if (filters.requirements.length > 0) {
-				const req = itemRequirements.get(item.id)
-				const isSafe = !req
+			// Meta filters (tri-state: include/exclude/ignore)
+			const req = itemRequirements.get(item.id)
+			const recipes = usedInRecipes.get(item.id)
+			const sources = recycledFrom.get(item.id)
 
-				// Check if item matches any selected requirement filter
-				const matchesFilter = filters.requirements.some(reqFilter => {
-					if (reqFilter === 'not-required') return isSafe
-					if (reqFilter === 'quests') return req?.sources.has('quests')
-					if (reqFilter === 'hideout') return req?.sources.has('hideout')
-					if (reqFilter === 'projects') return req?.sources.has('projects')
+			// Item properties for filtering
+			const itemProps = {
+				required: !!req,
+				quests: req?.sources.has('quests') || false,
+				hideout: req?.sources.has('hideout') || false,
+				projects: req?.sources.has('projects') || false,
+				craftable: !!item.recipe,
+				ingredient: !!recipes && recipes.length > 0,
+				recyclable: (!!item.recyclesInto && Object.keys(item.recyclesInto).length > 0) || (!!item.salvagesInto && Object.keys(item.salvagesInto).length > 0),
+				reclaimed: !!sources && sources.length > 0,
+			}
+
+			// Apply tri-state filter logic
+			for (const [key, mode] of Object.entries(filters.metaFilters)) {
+				if (mode === 'ignore') continue
+
+				const hasProperty = itemProps[key as keyof typeof itemProps]
+
+				// Include: must have the property
+				if (mode === 'include' && !hasProperty) {
 					return false
-				})
+				}
 
-				if (!matchesFilter) return false
+				// Exclude: must NOT have the property
+				if (mode === 'exclude' && hasProperty) {
+					return false
+				}
 			}
 
 			return true
 		})
-	}, [items, searchQuery, filters, itemRequirements])
+	}, [items, searchQuery, filters, itemRequirements, usedInRecipes, recycledFrom])
 
 	// Sort items
 	const sortedItems = useMemo(() => {
