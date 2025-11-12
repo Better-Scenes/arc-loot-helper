@@ -1,0 +1,12 @@
+{
+	"permissions": {
+		"allow": [
+			"WebFetch(domain:github.com)",
+			"WebFetch(domain:raw.githubusercontent.com)",
+			"Bash(npm test:*)",
+			"WebFetch(domain:catalyst.tailwindui.com)"
+		],
+		"deny": [],
+		"ask": []
+	}
+}
