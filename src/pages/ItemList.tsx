@@ -374,40 +374,6 @@ export function ItemList() {
 
 	return (
 		<div>
-			{/* Header */}
-			<div className="mb-8">
-				<Heading level={1}>All Items</Heading>
-				<Text className="mt-2">
-					Browse all {stats.totalItems} items in ARC Raiders. Filter by what you need and group by
-					requirement type.
-				</Text>
-			</div>
-
-			{/* Statistics */}
-			<div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-				<div className="rounded-lg border border-white/10 bg-zinc-900 p-4">
-					<Text className="text-xs/6 font-medium text-zinc-400">Total Items</Text>
-					<div className="mt-2 text-3xl font-semibold text-white">{stats.totalItems}</div>
-				</div>
-
-				<div className="rounded-lg border border-white/10 bg-zinc-900 p-4">
-					<Text className="text-xs/6 font-medium text-zinc-400">Items Needed</Text>
-					<div className="mt-2 text-3xl font-semibold text-blue-400">{stats.itemsNeeded}</div>
-				</div>
-
-				<div className="rounded-lg border border-white/10 bg-zinc-900 p-4">
-					<Text className="text-xs/6 font-medium text-zinc-400">Total Quantity</Text>
-					<div className="mt-2 text-3xl font-semibold text-cyan-400">
-						{stats.totalQuantity.toLocaleString()}
-					</div>
-				</div>
-
-				<div className="rounded-lg border border-white/10 bg-zinc-900 p-4">
-					<Text className="text-xs/6 font-medium text-zinc-400">Safe to Salvage</Text>
-					<div className="mt-2 text-3xl font-semibold text-green-400">{stats.safeToSalvage}</div>
-				</div>
-			</div>
-
 			{/* Search and Toolbar */}
 			<div className="mb-8 space-y-4">
 				{/* Search */}

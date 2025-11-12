@@ -4,6 +4,7 @@
  */
 
 import { ItemList } from './pages/ItemList'
+import { Footer } from './components/Footer'
 
 function App() {
 	return (
@@ -41,6 +42,9 @@ function App() {
 			<main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
 				<ItemList />
 			</main>
+
+			{/* Footer */}
+			<Footer />
 		</div>
 	)
 }
