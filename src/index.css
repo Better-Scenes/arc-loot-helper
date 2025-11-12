@@ -1,1 +1,40 @@
 @import 'tailwindcss';
+
+@theme {
+	/* ARC Raiders Brand Colors - Retro Synthwave Aesthetic */
+	--color-arc-cream: #eae0cd;
+	--color-arc-cyan: #00ffff;
+	--color-arc-magenta: #ff00ff;
+	--color-arc-blue: #4a90e2;
+	--color-arc-orange: #ff6b35;
+	--color-arc-gray: #8b8b8b;
+
+	/* Rarity Tier Colors */
+	--color-common: #9ca3af;
+	--color-uncommon: #22c55e;
+	--color-rare: #3b82f6;
+	--color-epic: #a855f7;
+	--color-legendary: #f59e0b;
+
+	/* Extended Palette for UI */
+	--color-dark-bg: #0f0f0f;
+	--color-darker-bg: #050505;
+	--color-grungy: #1a1a1a;
+	--color-panel: #1e1e1e;
+
+	/* Semantic color mapping */
+	--color-primary: var(--color-arc-cyan);
+	--color-secondary: var(--color-arc-magenta);
+	--color-accent: var(--color-arc-orange);
+	--color-text-primary: var(--color-arc-cream);
+	--color-background: var(--color-dark-bg);
+
+	/* Gradient stops for rainbow stripes effect */
+	--color-rainbow-1: #ff0000;
+	--color-rainbow-2: #ff7f00;
+	--color-rainbow-3: #ffff00;
+	--color-rainbow-4: #00ff00;
+	--color-rainbow-5: #0000ff;
+	--color-rainbow-6: #4b0082;
+	--color-rainbow-7: #9400d3;
+}

@@ -5,6 +5,7 @@
 
 import type { Item } from '../data/types'
 import { Badge } from './badge'
+import { ItemIcon } from './ItemIcon'
 
 interface ItemCardProps {
 	item: Item
@@ -94,16 +95,12 @@ export function ItemCard({ item, quantityNeeded, requiredFor, usedInRecipes, rec
 				{/* Header with image, name and rarity */}
 				<div className="mb-3 flex items-start gap-3">
 					{/* Item Image */}
-					<div className="flex-shrink-0">
-						<img
-							src={imageUrl}
-							alt={item.name.en}
-							className="h-16 w-16 rounded-md bg-zinc-800 object-cover"
-							onError={e => {
-								e.currentTarget.style.display = 'none'
-							}}
-						/>
-					</div>
+					<ItemIcon
+						imageUrl={imageUrl}
+						itemName={item.name.en}
+						rarity={item.rarity}
+						size="sm"
+					/>
 
 					{/* Name and Type */}
 					<div className="min-w-0 flex-1">
