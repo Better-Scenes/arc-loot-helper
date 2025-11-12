@@ -15,6 +15,7 @@ export type RequirementFilter = 'quests' | 'hideout' | 'projects' | 'safe'
 export type RarityFilter = 'common' | 'uncommon' | 'rare' | 'legendary'
 export type SortField = 'name' | 'type' | 'value'
 export type SortDirection = 'asc' | 'desc'
+export type DisplayMode = 'grid' | 'list'
 
 export interface FilterState {
 	groupBy: GroupByOption
@@ -23,6 +24,7 @@ export interface FilterState {
 	categories: NormalizedItemType[]
 	sortField: SortField
 	sortDirection: SortDirection
+	displayMode: DisplayMode
 }
 
 interface FilterControlsProps {

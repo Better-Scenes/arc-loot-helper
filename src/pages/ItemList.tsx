@@ -10,6 +10,7 @@ import { SearchBar } from '../components/SearchBar'
 import { ItemToolbar } from '../components/ItemToolbar'
 import { type FilterState } from '../components/FilterControls'
 import { ItemCard } from '../components/ItemCard'
+import { ItemListRow } from '../components/ItemListRow'
 import { useGameData } from '../hooks/useGameData'
 import { NORMALIZED_TYPE_ORDER } from '../utils/normalizeGameData'
 import type { Item } from '../data/types'
@@ -34,6 +35,7 @@ export function ItemList() {
 		categories: [],
 		sortField: 'name',
 		sortDirection: 'asc',
+		displayMode: 'grid',
 	})
 
 	// Calculate what recipes use each item
@@ -254,10 +256,13 @@ export function ItemList() {
 					return nameA.localeCompare(nameB) * direction
 				})
 			case 'type':
+				// Sort by category (meta group) using normalized type order
 				return itemsCopy.sort((a, b) => {
-					const typeA = a.type || ''
-					const typeB = b.type || ''
-					return typeA.localeCompare(typeB) * direction
+					const categoryA = a.category || 'Misc'
+					const categoryB = b.category || 'Misc'
+					const indexA = NORMALIZED_TYPE_ORDER.indexOf(categoryA)
+					const indexB = NORMALIZED_TYPE_ORDER.indexOf(categoryB)
+					return (indexA - indexB) * direction
 				})
 			case 'value':
 				return itemsCopy.sort((a, b) => {
@@ -281,12 +286,13 @@ export function ItemList() {
 				if (!groups.has(rarity)) groups.set(rarity, [])
 				groups.get(rarity)!.push(item)
 			}
+			const rarityOrder = ['Legendary', 'Epic', 'Rare', 'Uncommon', 'Common', 'Unknown']
 			return Array.from(groups.entries())
-				.sort(
-					([a], [b]) =>
-						['Common', 'Uncommon', 'Rare', 'Legendary'].indexOf(a) -
-						['Common', 'Uncommon', 'Rare', 'Legendary'].indexOf(b)
-				)
+				.sort(([a], [b]) => {
+					const indexA = rarityOrder.indexOf(a)
+					const indexB = rarityOrder.indexOf(b)
+					return (indexA === -1 ? 999 : indexA) - (indexB === -1 ? 999 : indexB)
+				})
 				.map(([rarity, items]) => ({ title: rarity, items }))
 		}
 
@@ -400,6 +406,20 @@ export function ItemList() {
 						{group.items.length === 0 ? (
 							<div className="rounded-lg border border-white/10 bg-zinc-900 p-6">
 								<Text className="text-center text-zinc-500">No items match your filters</Text>
+							</div>
+						) : filters.displayMode === 'list' ? (
+							<div className="space-y-2">
+								{group.items.map(item => {
+									const req = itemRequirements.get(item.id)
+									return (
+										<ItemListRow
+											key={`${group.title}-${item.id}`}
+											item={item}
+											quantityNeeded={req?.total}
+											requiredFor={req ? Array.from(req.sources) : undefined}
+										/>
+									)
+								})}
 							</div>
 						) : (
 							<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

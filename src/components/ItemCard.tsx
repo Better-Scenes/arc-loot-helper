@@ -102,15 +102,20 @@ export function ItemCard({ item, quantityNeeded, requiredFor, usedInRecipes, rec
 						size="sm"
 					/>
 
-					{/* Name and Type */}
+					{/* Name and Category */}
 					<div className="min-w-0 flex-1">
 						<h3 className="truncate text-base font-semibold text-white">{item.name.en}</h3>
-						<p className="mt-1 text-sm text-zinc-400">{item.type}</p>
+						<p className="mt-1 text-sm text-zinc-400">{item.category || 'Misc'}</p>
 					</div>
 
-					{/* Rarity Badge */}
-					<div className="flex-shrink-0">
+					{/* Rarity and Type Badges */}
+					<div className="flex flex-shrink-0 flex-col items-end gap-1">
 						<Badge color={rarityColor}>{item.rarity || 'Unknown'}</Badge>
+						{item.type && (
+							<Badge color="zinc" className="text-xs">
+								{item.type}
+							</Badge>
+						)}
 					</div>
 				</div>
 

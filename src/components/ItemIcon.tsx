@@ -11,7 +11,7 @@ interface ItemIconProps {
 	imageUrl: string
 	itemName: string
 	rarity?: string
-	size?: 'sm' | 'md' | 'lg'
+	size?: 'xs' | 'sm' | 'md' | 'lg'
 }
 
 /**
@@ -68,6 +68,7 @@ export function ItemIcon({ imageUrl, itemName, rarity, size = 'md' }: ItemIconPr
 	const { borderClass, glowColor, arcAngle, fillColor } = getRarityStyles(rarity)
 
 	const sizeClasses = {
+		xs: 'w-10 h-10',
 		sm: 'w-16 h-16',
 		md: 'w-24 h-24',
 		lg: 'w-32 h-32',

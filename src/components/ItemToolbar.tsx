@@ -8,8 +8,9 @@ import { Checkbox, CheckboxField } from './checkbox'
 import { Label } from './fieldset'
 import { Button } from './button'
 import { ArrowUpIcon, ArrowDownIcon } from '@heroicons/react/16/solid'
+import { Squares2X2Icon, ListBulletIcon } from '@heroicons/react/20/solid'
 import { NORMALIZED_TYPE_ORDER, type NormalizedItemType } from '../utils/normalizeGameData'
-import type { FilterState, GroupByOption, RequirementFilter, RarityFilter, SortField } from './FilterControls'
+import type { FilterState, GroupByOption, RequirementFilter, RarityFilter, SortField, DisplayMode } from './FilterControls'
 
 interface ItemToolbarProps {
 	filters: FilterState
@@ -86,6 +87,10 @@ export function ItemToolbar({ filters, onFilterChange, itemCount, filteredCount 
 		onFilterChange({ ...filters, sortDirection: filters.sortDirection === 'asc' ? 'desc' : 'asc' })
 	}
 
+	const handleDisplayModeChange = (mode: DisplayMode) => {
+		onFilterChange({ ...filters, displayMode: mode })
+	}
+
 	const clearAllFilters = () => {
 		onFilterChange({
 			groupBy: 'none',
@@ -94,6 +99,7 @@ export function ItemToolbar({ filters, onFilterChange, itemCount, filteredCount 
 			categories: [],
 			sortField: 'name',
 			sortDirection: 'asc',
+			displayMode: filters.displayMode,
 		})
 	}
 
@@ -211,6 +217,24 @@ export function ItemToolbar({ filters, onFilterChange, itemCount, filteredCount 
 					<ArrowDownIcon className="size-4" />
 				)}
 			</Button>
+
+			{/* Display Mode Toggle */}
+			<div className="flex gap-1">
+				<Button
+					outline
+					onClick={() => handleDisplayModeChange('grid')}
+					className={filters.displayMode === 'grid' ? 'bg-white/10' : ''}
+				>
+					<Squares2X2Icon className="size-4" />
+				</Button>
+				<Button
+					outline
+					onClick={() => handleDisplayModeChange('list')}
+					className={filters.displayMode === 'list' ? 'bg-white/10' : ''}
+				>
+					<ListBulletIcon className="size-4" />
+				</Button>
+			</div>
 
 			{/* Item Count */}
 			<div className="ml-auto text-sm text-zinc-400">
