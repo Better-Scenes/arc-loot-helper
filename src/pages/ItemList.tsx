@@ -75,11 +75,13 @@ export function ItemList() {
 			if (item.usedIn && item.usedIn.length > 0) {
 				recipeMap.set(
 					item.id,
-					item.usedIn.map(rel => ({
-						itemId: rel.item.id,
-						itemName: rel.item.name,
-						quantity: rel.quantity,
-					}))
+					item.usedIn
+						.filter(rel => rel.item) // Filter out any without item data
+						.map(rel => ({
+							itemId: rel.item!.id,
+							itemName: rel.item!.name,
+							quantity: rel.quantity,
+						}))
 				)
 			}
 		}
