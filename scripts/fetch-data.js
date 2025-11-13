@@ -9,6 +9,7 @@ import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import { fetchPaginated, fetchSingle } from './lib/api-client.js';
 import { validateItems, validateQuests, validateARCs, validateTraders } from './lib/validators.js';
+import { fetchHideoutModules } from './lib/hideout-fetcher.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -37,24 +38,27 @@ async function fetchAPIData() {
 
   try {
     // Fetch all data in parallel
-    const [items, quests, arcs, tradersResponse] = await Promise.all([
+    const [items, quests, arcs, tradersResponse, hideoutModules] = await Promise.all([
       fetchPaginated('/items', { limit: 100 }, { includeComponents: true }),
       fetchPaginated('/quests', { limit: 50 }),
       fetchPaginated('/arcs', { limit: 50 }),
       fetchSingle('/traders'),
+      fetchHideoutModules(),
     ]);
 
     console.log('\n📊 API Data Summary:');
     console.log(`   • Items: ${items.length}`);
     console.log(`   • Quests: ${quests.length}`);
     console.log(`   • ARCs: ${arcs.length}`);
-    console.log(`   • Traders: ${Object.keys(tradersResponse.data || {}).length} vendors\n`);
+    console.log(`   • Traders: ${Object.keys(tradersResponse.data || {}).length} vendors`);
+    console.log(`   • Hideout Modules: ${hideoutModules.length}\n`);
 
     return {
       items,
       quests,
       arcs,
       traders: tradersResponse.data || {},
+      hideoutModules,
     };
   } catch (error) {
     console.error('❌ API fetch failed:', error.message);
@@ -197,6 +201,7 @@ function transformData(apiData) {
     quests,
     arcs: apiData.arcs,
     traders: apiData.traders,
+    hideoutModules: apiData.hideoutModules,
   };
 }
 
@@ -266,6 +271,7 @@ async function saveData(data) {
     { name: 'quests.json', data: data.quests },
     { name: 'arcs.json', data: data.arcs },
     { name: 'traders.json', data: data.traders },
+    { name: 'hideoutModules.json', data: data.hideoutModules },
   ];
 
   for (const { name, data: fileData } of filesToSave) {
@@ -311,8 +317,7 @@ async function fetchData() {
     const duration = ((Date.now() - startTime) / 1000).toFixed(1);
     console.log('─'.repeat(50));
     console.log(`\n🎉 Data fetch complete in ${duration}s!`);
-    console.log(`   📁 Output: ${OUTPUT_DIR}`);
-    console.log(`   📦 Files: items.json, quests.json, arcs.json, traders.json\n`);
+    console.log(`   📁 Output: ${OUTPUT_DIR}\n`);
   } catch (error) {
     console.error('\n💥 Fatal error:', error.message);
     console.error('');
