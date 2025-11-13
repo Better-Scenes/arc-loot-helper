@@ -25,12 +25,12 @@ export function Footer() {
 					<p>
 						<strong className="text-zinc-300">Data Source:</strong> Game data provided by{' '}
 						<a
-							href="https://github.com/RaidTheory/arcraiders-data"
+							href="https://metaforge.app"
 							target="_blank"
 							rel="noopener noreferrer"
 							className="text-primary hover:text-primary/80 transition-colors"
 						>
-							RaidTheory/arcraiders-data
+							MetaForge ARC Raiders API
 						</a>
 						.
 					</p>
