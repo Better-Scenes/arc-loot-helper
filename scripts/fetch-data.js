@@ -1,127 +1,326 @@
 /**
- * Data Fetcher Script
- * Fetches game data JSON files from arcraiders-data repository
+ * API-Only Data Fetcher Script
+ * Fetches game data from MetaForge Arc Raiders API
  * Run with: node scripts/fetch-data.js
  */
 
-import { promises as fs } from 'fs'
-import https from 'https'
-import { fileURLToPath } from 'url'
-import { dirname, join } from 'path'
+import { promises as fs } from 'fs';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
+import { fetchPaginated, fetchSingle } from './lib/api-client.js';
+import { validateItems, validateQuests, validateARCs, validateTraders } from './lib/validators.js';
 
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = dirname(__filename)
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
-// Configuration
-const BASE_URL = 'https://raw.githubusercontent.com/RaidTheory/arcraiders-data/main/'
-const FILES = [
-	'items.json',
-	'quests.json',
-	'hideoutModules.json',
-	'projects.json',
-	'skillNodes.json',
-]
-const OUTPUT_DIR = join(__dirname, '..', 'public', 'data')
-
-/**
- * Fetch a file from URL using https module
- * @param {string} url - URL to fetch
- * @returns {Promise<string>} - File content
- */
-function fetchFile(url) {
-	return new Promise((resolve, reject) => {
-		https
-			.get(url, res => {
-				let data = ''
-
-				if (res.statusCode !== 200) {
-					reject(new Error(`HTTP ${res.statusCode}: ${res.statusMessage}`))
-					return
-				}
-
-				res.on('data', chunk => {
-					data += chunk
-				})
-
-				res.on('end', () => {
-					resolve(data)
-				})
-			})
-			.on('error', reject)
-	})
-}
+const OUTPUT_DIR = join(__dirname, '..', 'public', 'data');
 
 /**
  * Ensure directory exists, create if not
  * @param {string} dir - Directory path
  */
 async function ensureDir(dir) {
-	try {
-		await fs.access(dir)
-	} catch {
-		await fs.mkdir(dir, { recursive: true })
-		console.log(`📁 Created directory: ${dir}`)
-	}
+  try {
+    await fs.access(dir);
+  } catch {
+    await fs.mkdir(dir, { recursive: true });
+    console.log(`📁 Created directory: ${dir}`);
+  }
+}
+
+/**
+ * Fetch API data
+ * @returns {Promise<Object>} API data
+ */
+async function fetchAPIData() {
+  console.log('🌐 Fetching data from MetaForge API...\n');
+
+  try {
+    // Fetch all data in parallel
+    const [items, quests, arcs, tradersResponse] = await Promise.all([
+      fetchPaginated('/items', { limit: 100 }, { includeComponents: true }),
+      fetchPaginated('/quests', { limit: 50 }),
+      fetchPaginated('/arcs', { limit: 50 }),
+      fetchSingle('/traders'),
+    ]);
+
+    console.log('\n📊 API Data Summary:');
+    console.log(`   • Items: ${items.length}`);
+    console.log(`   • Quests: ${quests.length}`);
+    console.log(`   • ARCs: ${arcs.length}`);
+    console.log(`   • Traders: ${Object.keys(tradersResponse.data || {}).length} vendors\n`);
+
+    return {
+      items,
+      quests,
+      arcs,
+      traders: tradersResponse.data || {},
+    };
+  } catch (error) {
+    console.error('❌ API fetch failed:', error.message);
+    throw error;
+  }
+}
+
+/**
+ * Validate fetched data
+ * @param {Object} apiData - API data to validate
+ * @returns {boolean} True if all valid
+ */
+function validateData(apiData) {
+  console.log('🔍 Validating data...\n');
+
+  let allValid = true;
+
+  // Validate items
+  const itemsResult = validateItems(apiData.items);
+  if (!itemsResult.valid) {
+    console.error('❌ Items validation failed:');
+    itemsResult.errors.slice(0, 5).forEach((err) => console.error(`   • ${err}`));
+    if (itemsResult.errors.length > 5) {
+      console.error(`   ... and ${itemsResult.errors.length - 5} more errors`);
+    }
+    allValid = false;
+  } else {
+    console.log(`   ✅ Items: ${apiData.items.length} valid`);
+  }
+
+  // Validate quests
+  const questsResult = validateQuests(apiData.quests);
+  if (!questsResult.valid) {
+    console.error('❌ Quests validation failed:');
+    questsResult.errors.slice(0, 5).forEach((err) => console.error(`   • ${err}`));
+    allValid = false;
+  } else {
+    console.log(`   ✅ Quests: ${apiData.quests.length} valid`);
+  }
+
+  // Validate ARCs
+  const arcsResult = validateARCs(apiData.arcs);
+  if (!arcsResult.valid) {
+    console.error('❌ ARCs validation failed:');
+    arcsResult.errors.slice(0, 5).forEach((err) => console.error(`   • ${err}`));
+    allValid = false;
+  } else {
+    console.log(`   ✅ ARCs: ${apiData.arcs.length} valid`);
+  }
+
+  // Validate traders
+  const tradersResult = validateTraders(apiData.traders);
+  if (!tradersResult.valid) {
+    console.error('❌ Traders validation failed:');
+    tradersResult.errors.slice(0, 5).forEach((err) => console.error(`   • ${err}`));
+    allValid = false;
+  } else {
+    const vendorCount = Object.keys(apiData.traders).length;
+    console.log(`   ✅ Traders: ${vendorCount} vendors valid`);
+  }
+
+  console.log('');
+  return allValid;
+}
+
+/**
+ * Transform API data to our schema format
+ * @param {Object} apiData - Raw API data
+ * @returns {Object} Transformed data
+ */
+function transformData(apiData) {
+  console.log('🔄 Transforming data to app schema...\n');
+
+  // Transform items: convert API component arrays to our recipe format
+  const items = apiData.items.map((item) => {
+    const transformed = {
+      id: item.id,
+      name: { en: item.name },
+      description: { en: item.description || '' },
+      type: item.item_type,
+      rarity: item.rarity || undefined,
+      value: item.value || 0,
+      weightKg: item.stat_block?.weight || 0,
+      stackSize: item.stat_block?.stackSize || 1,
+      imageFilename: item.icon || '',
+
+      // Convert component arrays to our recipe format {itemId: quantity}
+      recipe: componentsToRecipe(item.components),
+      recyclesInto: componentsToRecipe(item.recycle_components),
+
+      // Keep API-specific fields
+      workbench: item.workbench,
+      loadout_slots: item.loadout_slots,
+      sources: item.sources,
+      locations: item.locations,
+      loot_area: item.loot_area,
+      stat_block: item.stat_block,
+
+      // Keep full component relationships
+      usedIn: item.used_in,
+      recycleFrom: item.recycle_from,
+    };
+
+    // Remove undefined values
+    Object.keys(transformed).forEach((key) => {
+      if (transformed[key] === undefined) {
+        delete transformed[key];
+      }
+    });
+
+    return transformed;
+  });
+
+  // Transform quests: convert API rewards to our format
+  const quests = apiData.quests.map((quest) => {
+    const transformed = {
+      id: quest.id,
+      name: { en: quest.name },
+      objectives: Array.isArray(quest.objectives) ? quest.objectives.map((obj) => ({ en: obj })) : [],
+      xp: quest.xp || 0,
+      requiredItemIds: convertQuestRequirements(quest.required_items),
+      rewardItemIds: convertQuestRewards(quest.rewards),
+    };
+
+    // Remove undefined values
+    Object.keys(transformed).forEach((key) => {
+      if (transformed[key] === undefined) {
+        delete transformed[key];
+      }
+    });
+
+    return transformed;
+  });
+
+  console.log(`   • Transformed ${items.length} items`);
+  console.log(`   • Transformed ${quests.length} quests\n`);
+
+  return {
+    items,
+    quests,
+    arcs: apiData.arcs,
+    traders: apiData.traders,
+  };
+}
+
+/**
+ * Convert API component array to our recipe format
+ * @param {Array} components - API components array
+ * @returns {Object|undefined} Recipe object {itemId: quantity}
+ */
+function componentsToRecipe(components) {
+  if (!Array.isArray(components) || components.length === 0) {
+    return undefined;
+  }
+
+  const recipe = {};
+  components.forEach((comp) => {
+    if (comp.component && comp.component.id) {
+      recipe[comp.component.id] = comp.quantity || 1;
+    }
+  });
+
+  return Object.keys(recipe).length > 0 ? recipe : undefined;
+}
+
+/**
+ * Convert API quest rewards to our format
+ * @param {Array} rewards - API rewards array
+ * @returns {Array} Our format [{itemId, quantity}]
+ */
+function convertQuestRewards(rewards) {
+  if (!Array.isArray(rewards) || rewards.length === 0) {
+    return [];
+  }
+
+  return rewards.map((reward) => ({
+    itemId: reward.item?.id || reward.item_id,
+    quantity: parseInt(reward.quantity) || 1,
+  }));
+}
+
+/**
+ * Convert API required items to our format
+ * @param {Array} requiredItems - API required_items array
+ * @returns {Array} Our format [{itemId, quantity}]
+ */
+function convertQuestRequirements(requiredItems) {
+  if (!Array.isArray(requiredItems) || requiredItems.length === 0) {
+    return [];
+  }
+
+  return requiredItems.map((req) => ({
+    itemId: req.item?.id || req.item_id || req.id,
+    quantity: parseInt(req.quantity) || 1,
+  }));
+}
+
+/**
+ * Save data to files
+ * @param {Object} data - Transformed data
+ */
+async function saveData(data) {
+  console.log('💾 Saving data files...\n');
+
+  await ensureDir(OUTPUT_DIR);
+
+  const filesToSave = [
+    { name: 'items.json', data: data.items },
+    { name: 'quests.json', data: data.quests },
+    { name: 'arcs.json', data: data.arcs },
+    { name: 'traders.json', data: data.traders },
+  ];
+
+  for (const { name, data: fileData } of filesToSave) {
+    const outputPath = join(OUTPUT_DIR, name);
+    const content = JSON.stringify(fileData, null, 2);
+    await fs.writeFile(outputPath, content, 'utf-8');
+
+    const itemCount = Array.isArray(fileData) ? fileData.length : Object.keys(fileData).length;
+    const sizeKB = (content.length / 1024).toFixed(1);
+    console.log(`   ✅ ${name} (${sizeKB}KB, ${itemCount} items)`);
+  }
+
+  console.log('');
 }
 
 /**
  * Main fetch function
  */
 async function fetchData() {
-	console.log('🚀 Starting data fetch from arcraiders-data repository...\n')
+  console.log('🚀 ARC Raiders Data Fetcher (API-Only)\n');
+  console.log('─'.repeat(50));
+  console.log('');
 
-	try {
-		// Ensure output directory exists
-		await ensureDir(OUTPUT_DIR)
+  const startTime = Date.now();
 
-		// Fetch all files
-		let successCount = 0
-		let failureCount = 0
+  try {
+    // Fetch from API
+    const apiData = await fetchAPIData();
 
-		for (const file of FILES) {
-			const url = `${BASE_URL}${file}`
-			const outputPath = join(OUTPUT_DIR, file)
+    // Validate
+    const isValid = validateData(apiData);
+    if (!isValid) {
+      throw new Error('Data validation failed');
+    }
 
-			try {
-				console.log(`📥 Fetching ${file}...`)
-				const content = await fetchFile(url)
+    // Transform to our schema
+    const transformedData = transformData(apiData);
 
-				// Validate JSON
-				const parsed = JSON.parse(content)
-				const itemCount = Array.isArray(parsed) ? parsed.length : 'N/A'
+    // Save
+    await saveData(transformedData);
 
-				// Write to file
-				await fs.writeFile(outputPath, content, 'utf-8')
-
-				console.log(
-					`   ✅ Saved ${file} (${(content.length / 1024).toFixed(1)}KB, ${itemCount} items)\n`
-				)
-				successCount++
-			} catch (error) {
-				console.error(`   ❌ Failed to fetch ${file}:`, error.message, '\n')
-				failureCount++
-			}
-		}
-
-		// Summary
-		console.log('─'.repeat(50))
-		console.log(`\n📊 Summary:`)
-		console.log(`   ✅ Success: ${successCount}/${FILES.length}`)
-		console.log(`   ❌ Failed: ${failureCount}/${FILES.length}`)
-
-		if (failureCount > 0) {
-			console.log('\n⚠️  Some files failed to fetch. Build may be incomplete.')
-			process.exit(1)
-		} else {
-			console.log('\n🎉 All data fetched successfully!')
-		}
-	} catch (error) {
-		console.error('\n💥 Fatal error:', error)
-		process.exit(1)
-	}
+    // Success!
+    const duration = ((Date.now() - startTime) / 1000).toFixed(1);
+    console.log('─'.repeat(50));
+    console.log(`\n🎉 Data fetch complete in ${duration}s!`);
+    console.log(`   📁 Output: ${OUTPUT_DIR}`);
+    console.log(`   📦 Files: items.json, quests.json, arcs.json, traders.json\n`);
+  } catch (error) {
+    console.error('\n💥 Fatal error:', error.message);
+    console.error('');
+    process.exit(1);
+  }
 }
 
 // Run the fetch
-fetchData()
+fetchData();
 
-export { fetchData, fetchFile, ensureDir }
+export { fetchData };

@@ -6,7 +6,8 @@
       "Bash(npm test:*)",
       "WebFetch(domain:catalyst.tailwindui.com)",
       "WebSearch",
-      "Bash(cat:*)"
+      "Bash(cat:*)",
+      "WebFetch(domain:metaforge.app)"
     ],
     "deny": [],
     "ask": []

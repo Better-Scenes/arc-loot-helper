@@ -8,6 +8,7 @@ import type { Item } from '../data/types'
 import { Badge } from './badge'
 import { ItemIcon } from './ItemIcon'
 import { ChevronDownIcon, ChevronUpIcon } from '@heroicons/react/16/solid'
+import { calculateSalvageValue, getSalvageEfficiency } from '../utils/salvageValue'
 
 interface ItemCardProps {
 	item: Item
@@ -67,6 +68,10 @@ export function ItemCard({
 		(item.recyclesInto && Object.keys(item.recyclesInto).length > 0) ||
 		(item.salvagesInto && Object.keys(item.salvagesInto).length > 0)
 	const stackSize = item.stackSize || 1
+
+	// Calculate salvage value
+	const salvageInfo = calculateSalvageValue(item, allItems)
+	const salvageEfficiency = getSalvageEfficiency(item, salvageInfo)
 
 	// Show details if either globally enabled OR locally expanded
 	const shouldShowDetails = showDetails || isExpanded
@@ -147,29 +152,92 @@ export function ItemCard({
 				</div>
 
 				{/* Item Stats - Always Visible */}
-				<div className="mb-3 border-t border-white/10 pt-3 flex justify-between text-sm">
+				<div className="mb-3 border-t border-white/10 pt-3 grid grid-cols-3 gap-4 text-sm">
+					{/* Top Row */}
 					<div>
 						<div className="text-zinc-500">Value</div>
-						<div className="font-medium text-zinc-200">{item.value?.toLocaleString() || '0'}</div>
+						<div className="font-medium text-emerald-400">{item.value?.toLocaleString() || '0'}</div>
 					</div>
-					<div>
-						<div className="text-zinc-500">Weight</div>
-						<div className="font-medium text-zinc-200">{item.weightKg ?? 0} kg</div>
-						<div className="mt-2 text-zinc-500">Max Stack</div>
+					<div className="text-center">
+						<div className="text-zinc-500">Max Stack</div>
 						<div className="font-medium text-zinc-200">{stackSize}</div>
 					</div>
 					<div className="text-right">
+						<div className="text-zinc-500">Weight</div>
+						<div className="font-medium text-zinc-200">{item.weightKg ?? 0} kg</div>
+					</div>
+
+					{/* Bottom Row */}
+					<div>
+						{salvageInfo && salvageInfo.recycleValue > 0 ? (
+							<>
+								<div className="text-zinc-500">Recycle $</div>
+								<div className="flex items-center gap-1">
+									<span className="font-medium text-emerald-400">
+										{salvageInfo.recycleValue.toLocaleString()}
+									</span>
+									{salvageEfficiency && (
+										<Badge
+											color={
+												salvageEfficiency.recycle > 100
+													? 'sky'
+													: salvageEfficiency.recycle >= 80
+														? 'green'
+														: salvageEfficiency.recycle >= 50
+															? 'yellow'
+															: 'red'
+											}
+										>
+											{salvageEfficiency.recycle.toFixed(0)}%
+										</Badge>
+									)}
+								</div>
+							</>
+						) : salvageInfo && salvageInfo.salvageValue > 0 ? (
+							<>
+								<div className="text-zinc-500">Salvage $</div>
+								<div className="flex items-center gap-1">
+									<span className="font-medium text-emerald-400">
+										{salvageInfo.salvageValue.toLocaleString()}
+									</span>
+									{salvageEfficiency && (
+										<Badge
+											color={
+												salvageEfficiency.salvage > 100
+													? 'sky'
+													: salvageEfficiency.salvage >= 80
+														? 'green'
+														: salvageEfficiency.salvage >= 50
+															? 'yellow'
+															: 'red'
+											}
+										>
+											{salvageEfficiency.salvage.toFixed(0)}%
+										</Badge>
+									)}
+								</div>
+							</>
+						) : (
+							<div className="invisible">
+								<div className="text-zinc-500">-</div>
+								<div>-</div>
+							</div>
+						)}
+					</div>
+					<div className="text-center">
+						<div className="text-zinc-500">$/Stack</div>
+						<div className="font-medium text-emerald-400">
+							{item.value ? (item.value * stackSize).toLocaleString() : '0'}
+						</div>
+					</div>
+					<div className="text-right">
 						<div className="text-zinc-500">$/kg</div>
-						<div className="font-medium text-cyan-400">
+						<div className="font-medium text-emerald-400">
 							{item.value && item.weightKg && item.weightKg > 0
 								? Math.round(item.value / item.weightKg).toLocaleString()
 								: item.value && !item.weightKg
 									? '∞'
 									: '0'}
-						</div>
-						<div className="mt-2 text-zinc-500">$/Stack</div>
-						<div className="font-medium text-emerald-400">
-							{item.value ? (item.value * stackSize).toLocaleString() : '0'}
 						</div>
 					</div>
 				</div>
@@ -309,8 +377,8 @@ export function ItemCard({
 							<div className="mb-3">
 								<div className="mb-2 text-xs text-zinc-500">
 									Crafted from
-									{item.craftBench &&
-										` (${Array.isArray(item.craftBench) ? item.craftBench.join(', ') : item.craftBench})`}
+									{(item.workbench || item.craftBench) &&
+										` (${Array.isArray(item.craftBench) ? item.craftBench.join(', ') : item.workbench || item.craftBench})`}
 									:
 								</div>
 								<div className="flex flex-wrap gap-2">

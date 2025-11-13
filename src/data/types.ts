@@ -48,6 +48,26 @@ export interface LocalizedEntity {
 // ============================================================================
 
 /**
+ * Component relationship entry (from API)
+ * Used in usedIn and recycleFrom arrays
+ */
+export interface ComponentRelationship {
+	quantity: number
+	item?: {
+		id: string
+		name: string
+		rarity: string
+		item_type: string
+	}
+	component?: {
+		id: string
+		name: string
+		rarity: string
+		item_type: string
+	}
+}
+
+/**
  * Item - Represents an in-game item
  */
 export interface Item {
@@ -71,6 +91,18 @@ export interface Item {
 	effects?: Record<string, LocalizedText>
 	tip?: string
 	_note?: string
+
+	// New fields from API
+	workbench?: string
+	loadout_slots?: string[]
+	sources?: string[]
+	locations?: string[]
+	loot_area?: string
+	stat_block?: Record<string, unknown>
+
+	// Component relationships (from API with includeComponents=true)
+	usedIn?: ComponentRelationship[]
+	recycleFrom?: ComponentRelationship[]
 }
 
 /**
@@ -151,6 +183,46 @@ export interface SkillNode {
 	// Optional fields
 	prerequisiteNodeIds?: string[]
 	knownValue?: unknown[]
+}
+
+/**
+ * ARC - Represents an ARC enemy/unit
+ */
+export interface ARC {
+	id: string
+	name: string
+	description?: string
+	icon?: string
+	image?: string
+	created_at?: string
+	updated_at?: string
+}
+
+/**
+ * TraderItem - Represents an item sold by a trader
+ */
+export interface TraderItem {
+	id: string
+	name: string
+	icon?: string
+	value?: number
+	rarity: string
+	item_type: string
+	description?: string
+	trader_price?: number | null
+}
+
+/**
+ * GameData - Container for all game data
+ */
+export interface GameData {
+	items: Item[]
+	quests: Quest[]
+	hideoutModules: HideoutModule[]
+	projects: Project[]
+	skillNodes: SkillNode[]
+	arcs?: ARC[]
+	traders?: Record<string, TraderItem[]>
 }
 
 /**

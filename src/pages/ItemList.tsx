@@ -64,32 +64,25 @@ export function ItemList() {
 		showDetails: false,
 	})
 
-	// Calculate what recipes use each item
+	// Use API's usedIn relationships directly (no need to compute)
 	const usedInRecipes = useMemo(() => {
-		if (!items)
-			return new Map<string, Array<{ itemId: string; itemName: string; quantity: number }>>()
+		if (!items) return new Map<string, Array<{ itemId: string; itemName: string; quantity: number }>>()
 
-		// Deduplicate items first
-		const uniqueItems = Array.from(new Map(items.map(item => [item.id, item])).values())
+		const recipeMap = new Map<string, Array<{ itemId: string; itemName: string; quantity: number }>>()
 
-		const recipeMap = new Map<
-			string,
-			Array<{ itemId: string; itemName: string; quantity: number }>
-		>()
-
-		for (const item of uniqueItems) {
-			if (item.recipe) {
-				// For each ingredient in this item's recipe
-				for (const [ingredientId, quantity] of Object.entries(item.recipe)) {
-					if (!recipeMap.has(ingredientId)) {
-						recipeMap.set(ingredientId, [])
-					}
-					recipeMap.get(ingredientId)!.push({
-						itemId: item.id,
-						itemName: item.name.en,
-						quantity,
-					})
-				}
+		// Each item has API's usedIn data embedded
+		for (const item of items) {
+			if (item.usedIn && item.usedIn.length > 0) {
+				recipeMap.set(
+					item.id,
+					item.usedIn
+						.filter(rel => rel.item) // Filter out any without item data
+						.map(rel => ({
+							itemId: rel.item!.id,
+							itemName: rel.item!.name,
+							quantity: rel.quantity,
+						}))
+				)
 			}
 		}
 
