@@ -84,7 +84,6 @@ export interface Item {
 
 	// Optional crafting/recycling fields
 	recyclesInto?: ItemRequirements
-	salvagesInto?: ItemRequirements
 	recipe?: ItemRequirements
 	craftBench?: string | string[]
 	foundIn?: string

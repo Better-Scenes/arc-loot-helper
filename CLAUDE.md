@@ -1,0 +1,1 @@
+- claude does not get to include itself in commit messages

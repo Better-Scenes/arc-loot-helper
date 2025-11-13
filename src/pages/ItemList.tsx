@@ -89,21 +89,15 @@ export function ItemList() {
 		return recipeMap
 	}, [items])
 
-	// Calculate what items recycle/salvage into this item
+	// Calculate what items recycle into this item
 	const recycledFrom = useMemo(() => {
 		if (!items)
-			return new Map<
-				string,
-				Array<{ itemId: string; itemName: string; recycleQty?: number; salvageQty?: number }>
-			>()
+			return new Map<string, Array<{ itemId: string; itemName: string; recycleQty: number }>>()
 
 		// Deduplicate items first
 		const uniqueItems = Array.from(new Map(items.map(item => [item.id, item])).values())
 
-		const recycleMap = new Map<
-			string,
-			Array<{ itemId: string; itemName: string; recycleQty?: number; salvageQty?: number }>
-		>()
+		const recycleMap = new Map<string, Array<{ itemId: string; itemName: string; recycleQty: number }>>()
 
 		for (const item of uniqueItems) {
 			// Check recyclesInto
@@ -113,37 +107,11 @@ export function ItemList() {
 						if (!recycleMap.has(materialId)) {
 							recycleMap.set(materialId, [])
 						}
-						const existing = recycleMap.get(materialId)!.find(r => r.itemId === item.id)
-						if (existing) {
-							existing.recycleQty = quantity
-						} else {
-							recycleMap.get(materialId)!.push({
-								itemId: item.id,
-								itemName: item.name.en,
-								recycleQty: quantity,
-							})
-						}
-					}
-				}
-			}
-
-			// Check salvagesInto
-			if (item.salvagesInto) {
-				for (const [materialId, quantity] of Object.entries(item.salvagesInto)) {
-					if (quantity > 0) {
-						if (!recycleMap.has(materialId)) {
-							recycleMap.set(materialId, [])
-						}
-						const existing = recycleMap.get(materialId)!.find(r => r.itemId === item.id)
-						if (existing) {
-							existing.salvageQty = quantity
-						} else {
-							recycleMap.get(materialId)!.push({
-								itemId: item.id,
-								itemName: item.name.en,
-								salvageQty: quantity,
-							})
-						}
+						recycleMap.get(materialId)!.push({
+							itemId: item.id,
+							itemName: item.name.en,
+							recycleQty: quantity,
+						})
 					}
 				}
 			}
@@ -307,9 +275,7 @@ export function ItemList() {
 				projects: req?.sources.has('projects') || false,
 				craftable: !!item.recipe,
 				ingredient: !!recipes && recipes.length > 0,
-				recyclable:
-					(!!item.recyclesInto && Object.keys(item.recyclesInto).length > 0) ||
-					(!!item.salvagesInto && Object.keys(item.salvagesInto).length > 0),
+				recyclable: !!item.recyclesInto && Object.keys(item.recyclesInto).length > 0,
 				reclaimed: !!sources && sources.length > 0,
 			}
 

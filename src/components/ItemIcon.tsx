@@ -8,7 +8,7 @@
  */
 
 interface ItemIconProps {
-	imageUrl: string
+	imageUrl: string | undefined
 	itemName: string
 	rarity?: string
 	size?: 'xs' | 'sm' | 'md' | 'lg'
@@ -97,14 +97,18 @@ export function ItemIcon({ imageUrl, itemName, rarity, size = 'md' }: ItemIconPr
 
 				{/* Item Image */}
 				<div className="relative flex h-full w-full items-center justify-center p-2">
-					<img
-						src={imageUrl}
-						alt={itemName}
-						className="h-full w-full object-contain drop-shadow-lg"
-						onError={e => {
-							e.currentTarget.style.display = 'none'
-						}}
-					/>
+					{imageUrl ? (
+						<img
+							src={imageUrl}
+							alt={itemName}
+							className="h-full w-full object-contain drop-shadow-lg"
+							onError={e => {
+								e.currentTarget.style.display = 'none'
+							}}
+						/>
+					) : (
+						<div className="text-2xl text-zinc-500 font-bold">?</div>
+					)}
 				</div>
 			</div>
 		</div>

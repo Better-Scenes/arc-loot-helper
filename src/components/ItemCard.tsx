@@ -9,6 +9,7 @@ import { Badge } from './badge'
 import { ItemIcon } from './ItemIcon'
 import { ChevronDownIcon, ChevronUpIcon } from '@heroicons/react/16/solid'
 import { calculateSalvageValue, getSalvageEfficiency } from '../utils/salvageValue'
+import { calculateValuePerWeight } from '../utils/valueWeightCalculator'
 
 interface ItemCardProps {
 	item: Item
@@ -23,8 +24,7 @@ interface ItemCardProps {
 	recycledFrom?: Array<{
 		itemId: string
 		itemName: string
-		recycleQty?: number
-		salvageQty?: number
+		recycleQty: number
 	}>
 	allItems: Item[]
 	showDetails?: boolean
@@ -64,9 +64,7 @@ export function ItemCard({
 	const isIngredient = usedInRecipes && usedInRecipes.length > 0
 	const isCraftable = !!item.recipe
 	const isReclaimed = recycledFrom && recycledFrom.length > 0
-	const isRecyclable =
-		(item.recyclesInto && Object.keys(item.recyclesInto).length > 0) ||
-		(item.salvagesInto && Object.keys(item.salvagesInto).length > 0)
+	const isRecyclable = item.recyclesInto && Object.keys(item.recyclesInto).length > 0
 	const stackSize = item.stackSize || 1
 
 	// Calculate salvage value
@@ -82,39 +80,20 @@ export function ItemCard({
 		return foundItem?.name.en || itemId
 	}
 
-	// Combine recycle and salvage data
+	// Get recycle breakdown data
 	const breakdownItems = (() => {
-		const combined = new Map<string, { name: string; recycleQty?: number; salvageQty?: number }>()
+		const items: Array<{ id: string; name: string; quantity: number }> = []
 
 		if (item.recyclesInto) {
 			for (const [id, qty] of Object.entries(item.recyclesInto)) {
 				if (qty > 0) {
-					combined.set(id, { name: getItemName(id), recycleQty: qty })
+					items.push({ id, name: getItemName(id), quantity: qty })
 				}
 			}
 		}
 
-		if (item.salvagesInto) {
-			for (const [id, qty] of Object.entries(item.salvagesInto)) {
-				if (qty > 0) {
-					const existing = combined.get(id)
-					if (existing) {
-						existing.salvageQty = qty
-					} else {
-						combined.set(id, { name: getItemName(id), salvageQty: qty })
-					}
-				}
-			}
-		}
-
-		return Array.from(combined.entries()).map(([id, data]) => ({ id, ...data }))
+		return items
 	})()
-
-	// Use imageFilename from data (arctracker.io CDN with complete coverage)
-	// Fallback to GitHub if imageFilename is missing
-	const imageUrl =
-		item.imageFilename ||
-		`https://raw.githubusercontent.com/RaidTheory/arcraiders-data/main/images/items/${item.id}.png`
 
 	// Check if there are any details to show
 	const hasDetails =
@@ -132,7 +111,12 @@ export function ItemCard({
 				{/* Header with image, name and rarity */}
 				<div className="mb-3 flex items-start gap-3">
 					{/* Item Image */}
-					<ItemIcon imageUrl={imageUrl} itemName={item.name.en} rarity={item.rarity} size="sm" />
+					<ItemIcon
+						imageUrl={item.imageFilename}
+						itemName={item.name.en}
+						rarity={item.rarity}
+						size="sm"
+					/>
 
 					{/* Name and Category */}
 					<div className="min-w-0 flex-1">
@@ -156,7 +140,9 @@ export function ItemCard({
 					{/* Top Row */}
 					<div>
 						<div className="text-zinc-500">Value</div>
-						<div className="font-medium text-emerald-400">{item.value?.toLocaleString() || '0'}</div>
+						<div className="font-medium text-emerald-400">
+							{item.value?.toLocaleString() || '0'}
+						</div>
 					</div>
 					<div className="text-center">
 						<div className="text-zinc-500">Max Stack</div>
@@ -176,43 +162,19 @@ export function ItemCard({
 									<span className="font-medium text-emerald-400">
 										{salvageInfo.recycleValue.toLocaleString()}
 									</span>
-									{salvageEfficiency && (
+									{salvageEfficiency !== null && (
 										<Badge
 											color={
-												salvageEfficiency.recycle > 100
+												salvageEfficiency > 100
 													? 'sky'
-													: salvageEfficiency.recycle >= 80
+													: salvageEfficiency >= 80
 														? 'green'
-														: salvageEfficiency.recycle >= 50
+														: salvageEfficiency >= 50
 															? 'yellow'
 															: 'red'
 											}
 										>
-											{salvageEfficiency.recycle.toFixed(0)}%
-										</Badge>
-									)}
-								</div>
-							</>
-						) : salvageInfo && salvageInfo.salvageValue > 0 ? (
-							<>
-								<div className="text-zinc-500">Salvage $</div>
-								<div className="flex items-center gap-1">
-									<span className="font-medium text-emerald-400">
-										{salvageInfo.salvageValue.toLocaleString()}
-									</span>
-									{salvageEfficiency && (
-										<Badge
-											color={
-												salvageEfficiency.salvage > 100
-													? 'sky'
-													: salvageEfficiency.salvage >= 80
-														? 'green'
-														: salvageEfficiency.salvage >= 50
-															? 'yellow'
-															: 'red'
-											}
-										>
-											{salvageEfficiency.salvage.toFixed(0)}%
+											{salvageEfficiency.toFixed(0)}%
 										</Badge>
 									)}
 								</div>
@@ -233,11 +195,12 @@ export function ItemCard({
 					<div className="text-right">
 						<div className="text-zinc-500">$/kg</div>
 						<div className="font-medium text-emerald-400">
-							{item.value && item.weightKg && item.weightKg > 0
-								? Math.round(item.value / item.weightKg).toLocaleString()
-								: item.value && !item.weightKg
-									? '∞'
-									: '0'}
+							{(() => {
+								const valuePerWeight = calculateValuePerWeight(item)
+								if (valuePerWeight === Infinity) return '∞'
+								if (valuePerWeight === 0) return '0'
+								return Math.round(valuePerWeight).toLocaleString()
+							})()}
 						</div>
 					</div>
 				</div>
@@ -320,54 +283,27 @@ export function ItemCard({
 						{/* Breaks Down Into */}
 						{breakdownItems.length > 0 && (
 							<div className="mb-3">
-								<div className="mb-2 text-xs text-zinc-500">Breaks down into:</div>
+								<div className="mb-2 text-xs text-zinc-500">Recycles into:</div>
 								<div className="flex flex-wrap gap-2">
-									{(() => {
-										// Check if item can be salvaged (any salvageQty > 0)
-										const canBeSalvaged = breakdownItems.some(mat => (mat.salvageQty ?? 0) > 0)
-
-										return breakdownItems.map(mat => {
-											const recycleQty = mat.recycleQty ?? 0
-											const salvageQty = mat.salvageQty ?? 0
-
-											// If item can be salvaged, show both values (with zeros)
-											// If item can't be salvaged at all, only show recycle value
-											const label = canBeSalvaged
-												? `${mat.name} (×${recycleQty}/×${salvageQty})`
-												: `${mat.name} (×${recycleQty})`
-
-											return (
-												<Badge key={mat.id} color="lime">
-													{label}
-												</Badge>
-											)
-										})
-									})()}
+									{breakdownItems.map(mat => (
+										<Badge key={mat.id} color="lime">
+											{mat.name} (×{mat.quantity})
+										</Badge>
+									))}
 								</div>
 							</div>
 						)}
 
-						{/* Salvaged From */}
+						{/* Recycled From */}
 						{recycledFrom && recycledFrom.length > 0 && (
 							<div className="mb-3">
-								<div className="mb-2 text-xs text-zinc-500">Salvaged from:</div>
+								<div className="mb-2 text-xs text-zinc-500">Recycled from:</div>
 								<div className="flex flex-wrap gap-2">
-									{recycledFrom.map(source => {
-										const recycleQty = source.recycleQty ?? 0
-										const salvageQty = source.salvageQty ?? 0
-
-										// If any salvage value exists, show both; otherwise only recycle
-										const label =
-											salvageQty > 0
-												? `${source.itemName} (×${recycleQty}/×${salvageQty})`
-												: `${source.itemName} (×${recycleQty})`
-
-										return (
-											<Badge key={source.itemId} color="lime">
-												{label}
-											</Badge>
-										)
-									})}
+									{recycledFrom.map(source => (
+										<Badge key={source.itemId} color="lime">
+											{source.itemName} (×{source.recycleQty ?? 0})
+										</Badge>
+									))}
 								</div>
 							</div>
 						)}

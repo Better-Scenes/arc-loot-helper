@@ -7,7 +7,9 @@
       "WebFetch(domain:catalyst.tailwindui.com)",
       "WebSearch",
       "Bash(cat:*)",
-      "WebFetch(domain:metaforge.app)"
+      "WebFetch(domain:metaforge.app)",
+      "WebFetch(domain:ardb.app)",
+      "Bash(curl:*)"
     ],
     "deny": [],
     "ask": []

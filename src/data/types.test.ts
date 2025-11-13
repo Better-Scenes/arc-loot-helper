@@ -42,7 +42,6 @@ describe('Data Types', () => {
 				stackSize: 1,
 				imageFilename: 'weapon.png',
 				recyclesInto: { metal_parts: 5 },
-				salvagesInto: { metal_parts: 3 },
 				recipe: { metal_parts: 10, wires: 5 },
 				craftBench: 'Gunsmith',
 				foundIn: 'Topside',

@@ -6,6 +6,7 @@
 import type { Item } from '../data/types'
 import { ItemIcon } from './ItemIcon'
 import { Badge } from './badge'
+import { calculateValuePerWeight } from '../utils/valueWeightCalculator'
 
 interface ItemListRowProps {
 	item: Item
@@ -20,8 +21,7 @@ interface ItemListRowProps {
 	recycledFrom?: Array<{
 		itemId: string
 		itemName: string
-		recycleQty?: number
-		salvageQty?: number
+		recycleQty: number
 	}>
 }
 
@@ -65,21 +65,20 @@ export function ItemListRow({ item, requirements, usedInRecipes, recycledFrom }:
 	const isIngredient = usedInRecipes && usedInRecipes.length > 0
 	const isCraftable = !!item.recipe
 	const isReclaimed = recycledFrom && recycledFrom.length > 0
-	const isRecyclable =
-		(item.recyclesInto && Object.keys(item.recyclesInto).length > 0) ||
-		(item.salvagesInto && Object.keys(item.salvagesInto).length > 0)
+	const isRecyclable = item.recyclesInto && Object.keys(item.recyclesInto).length > 0
 
 	const stackSize = item.stackSize || 1
-
-	const imageUrl =
-		item.imageFilename ||
-		`https://raw.githubusercontent.com/RaidTheory/arcraiders-data/main/images/items/${item.id}.png`
 
 	return (
 		<div className="grid grid-cols-[48px_minmax(150px,200px)_220px_70px_70px_80px_minmax(250px,1fr)] items-center gap-2 border-b border-l border-r border-white/10 bg-zinc-900 px-3 py-2 transition last:rounded-b hover:border-white/20 hover:bg-zinc-800">
 			{/* Item Icon */}
 			<div className="flex items-center justify-center">
-				<ItemIcon imageUrl={imageUrl} itemName={item.name.en} rarity={item.rarity} size="xs" />
+				<ItemIcon
+					imageUrl={item.imageFilename}
+					itemName={item.name.en}
+					rarity={item.rarity}
+					size="xs"
+				/>
 			</div>
 
 			{/* Item Name */}
@@ -107,11 +106,12 @@ export function ItemListRow({ item, requirements, usedInRecipes, recycledFrom }:
 			{/* $/kg */}
 			<div className="text-right">
 				<div className="text-xs font-medium text-emerald-400">
-					{item.value && item.weightKg && item.weightKg > 0
-						? Math.round(item.value / item.weightKg).toLocaleString()
-						: item.value && !item.weightKg
-							? '∞'
-							: '0'}
+					{(() => {
+						const valuePerWeight = calculateValuePerWeight(item)
+						if (valuePerWeight === Infinity) return '∞'
+						if (valuePerWeight === 0) return '0'
+						return Math.round(valuePerWeight).toLocaleString()
+					})()}
 				</div>
 			</div>
 
