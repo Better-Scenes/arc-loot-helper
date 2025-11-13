@@ -50,10 +50,17 @@ const rarityOptions = [
 	{ key: 'legendary' as const, label: 'Legendary' },
 ]
 
-const sortFieldOptions: Array<{ value: SortField; label: string }> = [
-	{ value: 'name', label: 'Name' },
-	{ value: 'type', label: 'Type' },
-	{ value: 'value', label: 'Value' },
+const sortFieldOptions: Array<{
+	value: SortField
+	label: string
+	defaultDirection: 'asc' | 'desc'
+	ascLabel: string
+	descLabel: string
+}> = [
+	{ value: 'name', label: 'Name', defaultDirection: 'asc', ascLabel: 'A-Z', descLabel: 'Z-A' },
+	{ value: 'type', label: 'Type', defaultDirection: 'asc', ascLabel: 'Default', descLabel: 'Reverse' },
+	{ value: 'rarity', label: 'Rarity', defaultDirection: 'desc', ascLabel: 'Worst-Best', descLabel: 'Best-Worst' },
+	{ value: 'value', label: 'Value', defaultDirection: 'desc', ascLabel: 'Low-High', descLabel: 'High-Low' },
 ]
 
 export function ItemToolbar({ filters, onFilterChange, itemCount, filteredCount }: ItemToolbarProps) {
@@ -92,11 +99,23 @@ export function ItemToolbar({ filters, onFilterChange, itemCount, filteredCount 
 	}
 
 	const handleSortFieldChange = (value: SortField) => {
-		onFilterChange({ ...filters, sortField: value })
-	}
+		const option = sortFieldOptions.find(opt => opt.value === value)
+		if (!option) return
 
-	const toggleSortDirection = () => {
-		onFilterChange({ ...filters, sortDirection: filters.sortDirection === 'asc' ? 'desc' : 'asc' })
+		// If clicking the current sort field, toggle direction
+		if (filters.sortField === value) {
+			onFilterChange({
+				...filters,
+				sortDirection: filters.sortDirection === 'asc' ? 'desc' : 'asc',
+			})
+		} else {
+			// If clicking a new sort field, use its default direction
+			onFilterChange({
+				...filters,
+				sortField: value,
+				sortDirection: option.defaultDirection,
+			})
+		}
 	}
 
 	const handleDisplayModeChange = (mode: DisplayMode) => {
@@ -143,6 +162,7 @@ export function ItemToolbar({ filters, onFilterChange, itemCount, filteredCount 
 
 	const selectedGroupBy = groupByOptions.find(opt => opt.value === filters.groupBy) || groupByOptions[0]
 	const selectedSortField = sortFieldOptions.find(opt => opt.value === filters.sortField) || sortFieldOptions[0]
+	const sortDirectionLabel = filters.sortDirection === 'asc' ? selectedSortField.ascLabel : selectedSortField.descLabel
 
 	// Count active filters (non-ignore states)
 	const activeMetaFilterCount = Object.values(filters.metaFilters).filter(v => v !== 'ignore').length
@@ -261,25 +281,39 @@ export function ItemToolbar({ filters, onFilterChange, itemCount, filteredCount 
 			{/* Sort Dropdown */}
 			<Dropdown>
 				<DropdownButton outline>
-					<span className="text-zinc-400">Sort:</span> {selectedSortField.label}
+					<span className="text-zinc-400">Sort:</span> {selectedSortField.label} ({sortDirectionLabel})
 				</DropdownButton>
 				<DropdownMenu>
-					{sortFieldOptions.map(option => (
-						<DropdownItem key={option.value} onClick={() => handleSortFieldChange(option.value)}>
-							{option.label}
-						</DropdownItem>
-					))}
+					{sortFieldOptions.map(option => {
+						const isActive = filters.sortField === option.value
+
+						return (
+							<DropdownItem
+								key={option.value}
+								onClick={() => handleSortFieldChange(option.value)}
+								className="flex items-center justify-between"
+							>
+								<span>{option.label}</span>
+								{isActive && (
+									<span className="ml-4 flex items-center gap-1 text-xs text-zinc-400">
+										{filters.sortDirection === 'asc' ? (
+											<>
+												<ArrowUpIcon className="size-3" />
+												{option.ascLabel}
+											</>
+										) : (
+											<>
+												<ArrowDownIcon className="size-3" />
+												{option.descLabel}
+											</>
+										)}
+									</span>
+								)}
+							</DropdownItem>
+						)
+					})}
 				</DropdownMenu>
 			</Dropdown>
-
-			{/* Sort Direction Toggle */}
-			<Button outline onClick={toggleSortDirection}>
-				{filters.sortDirection === 'asc' ? (
-					<ArrowUpIcon className="size-4" />
-				) : (
-					<ArrowDownIcon className="size-4" />
-				)}
-			</Button>
 
 			{/* Display Mode Toggle */}
 			<div className="flex gap-1">
@@ -299,14 +333,16 @@ export function ItemToolbar({ filters, onFilterChange, itemCount, filteredCount 
 				</Button>
 			</div>
 
-			{/* Show Details Toggle */}
-			<Button
-				outline
-				onClick={() => onFilterChange({ ...filters, showDetails: !filters.showDetails })}
-				className={filters.showDetails ? 'bg-white/10' : ''}
-			>
-				Show Details
-			</Button>
+			{/* Show Details Toggle - only visible in grid mode */}
+			{filters.displayMode === 'grid' && (
+				<Button
+					outline
+					onClick={() => onFilterChange({ ...filters, showDetails: !filters.showDetails })}
+					className={filters.showDetails ? 'bg-white/10' : ''}
+				>
+					Show Details
+				</Button>
+			)}
 
 			{/* Item Count */}
 			<div className="ml-auto text-sm text-zinc-400">

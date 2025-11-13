@@ -21,6 +21,23 @@ interface ItemListRowProps {
 }
 
 /**
+ * Header row for the item list table
+ */
+export function ItemListHeader() {
+	return (
+		<div className="grid grid-cols-[48px_minmax(150px,200px)_220px_80px_70px_80px_minmax(200px,1fr)] items-center gap-3 rounded-t border border-b-0 border-white/10 bg-zinc-800/50 px-3 py-2">
+			<div className="text-center text-[10px] font-medium text-zinc-400">Icon</div>
+			<div className="text-left text-[10px] font-medium text-zinc-400">Item Name</div>
+			<div className="text-left text-[10px] font-medium text-zinc-400">Rarity / Category</div>
+			<div className="text-right text-[10px] font-medium text-zinc-400">Value</div>
+			<div className="text-right text-[10px] font-medium text-zinc-400">Weight</div>
+			<div className="text-right text-[10px] font-medium text-zinc-400">$/kg</div>
+			<div className="text-left text-[10px] font-medium text-zinc-400">Properties</div>
+		</div>
+	)
+}
+
+/**
  * Get rarity badge color based on rarity
  */
 function getRarityColor(
@@ -51,48 +68,44 @@ export function ItemListRow({ item, requirements, usedInRecipes, recycledFrom }:
 		`https://raw.githubusercontent.com/RaidTheory/arcraiders-data/main/images/items/${item.id}.png`
 
 	return (
-		<div className="flex items-center gap-2 rounded border border-white/10 bg-zinc-900 px-2 py-1.5 transition hover:border-white/20 hover:bg-zinc-800">
+		<div className="grid grid-cols-[48px_minmax(150px,200px)_220px_80px_70px_80px_minmax(200px,1fr)] items-center gap-3 border-b border-l border-r border-white/10 bg-zinc-900 px-3 py-2 transition last:rounded-b hover:border-white/20 hover:bg-zinc-800">
 			{/* Item Icon */}
-			<ItemIcon
-				imageUrl={imageUrl}
-				itemName={item.name.en}
-				rarity={item.rarity}
-				size="xs"
-			/>
-
-			{/* Item Name & Category */}
-			<div className="min-w-0 flex-1">
-				<h3 className="truncate text-xs font-medium text-white">{item.name.en}</h3>
-				<p className="truncate text-[10px] text-zinc-500">{item.category || 'Misc'}</p>
+			<div className="flex items-center justify-center">
+				<ItemIcon
+					imageUrl={imageUrl}
+					itemName={item.name.en}
+					rarity={item.rarity}
+					size="xs"
+				/>
 			</div>
 
-			{/* Rarity and Type Badges */}
-			<div className="flex flex-shrink-0 items-center gap-1">
+			{/* Item Name */}
+			<div className="min-w-0">
+				<h3 className="truncate text-xs font-medium text-white">{item.name.en}</h3>
+			</div>
+
+			{/* Rarity & Category (in same column, separate badges) */}
+			<div className="flex items-center gap-1">
 				<Badge color={rarityColor} className="text-[10px] px-1.5 py-0.5">
 					{item.rarity || 'Unknown'}
 				</Badge>
-				{item.type && (
-					<Badge color="zinc" className="text-[10px] px-1.5 py-0.5">
-						{item.type}
-					</Badge>
-				)}
+				<Badge color="zinc" className="text-[10px] px-1.5 py-0.5">
+					{item.category || 'Misc'}
+				</Badge>
 			</div>
 
 			{/* Value */}
-			<div className="flex-shrink-0 text-right w-16">
-				<div className="text-[10px] text-zinc-500">Value</div>
+			<div className="text-right">
 				<div className="text-xs font-medium text-zinc-200">{item.value?.toLocaleString() || '0'}</div>
 			</div>
 
 			{/* Weight */}
-			<div className="flex-shrink-0 text-right w-14">
-				<div className="text-[10px] text-zinc-500">Weight</div>
+			<div className="text-right">
 				<div className="text-xs font-medium text-zinc-200">{item.weightKg ?? 0} kg</div>
 			</div>
 
 			{/* $/kg */}
-			<div className="flex-shrink-0 text-right w-16">
-				<div className="text-[10px] text-zinc-500">$/kg</div>
+			<div className="text-right">
 				<div className="text-xs font-medium text-primary">
 					{item.value && item.weightKg && item.weightKg > 0
 						? Math.round(item.value / item.weightKg).toLocaleString()
@@ -103,7 +116,7 @@ export function ItemListRow({ item, requirements, usedInRecipes, recycledFrom }:
 			</div>
 
 			{/* Status Badges */}
-			<div className="flex flex-shrink-0 items-center gap-1">
+			<div className="flex flex-wrap items-center gap-1">
 				{isRequired && (
 					<Badge
 						color="blue"

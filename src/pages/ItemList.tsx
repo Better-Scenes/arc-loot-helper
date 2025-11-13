@@ -10,7 +10,7 @@ import { SearchBar } from '../components/SearchBar'
 import { ItemToolbar } from '../components/ItemToolbar'
 import { type FilterState } from '../components/FilterControls'
 import { ItemCard } from '../components/ItemCard'
-import { ItemListRow } from '../components/ItemListRow'
+import { ItemListRow, ItemListHeader } from '../components/ItemListRow'
 import { useGameData } from '../hooks/useGameData'
 import { NORMALIZED_TYPE_ORDER } from '../utils/normalizeGameData'
 import type { Item } from '../data/types'
@@ -29,7 +29,7 @@ export function ItemList() {
 	// UI state
 	const [searchQuery, setSearchQuery] = useState('')
 	const [filters, setFilters] = useState<FilterState>({
-		groupBy: 'none',
+		groupBy: 'type',
 		metaFilters: {
 			required: 'ignore',
 			quests: 'ignore',
@@ -58,8 +58,8 @@ export function ItemList() {
 			'Crafting Materials': 'ignore',
 			'Misc': 'ignore',
 		},
-		sortField: 'name',
-		sortDirection: 'asc',
+		sortField: 'rarity',
+		sortDirection: 'desc',
 		displayMode: 'grid',
 		showDetails: false,
 	})
@@ -241,9 +241,14 @@ export function ItemList() {
 		)
 
 		return uniqueItems.filter(item => {
+			// Hide items without names (incomplete data)
+			if (!item.name?.en) {
+				return false
+			}
+
 			// Search filter
 			if (searchQuery) {
-				const itemName = item.name?.en?.toLowerCase() || ''
+				const itemName = item.name.en.toLowerCase()
 				if (!itemName.includes(searchQuery.toLowerCase())) {
 					return false
 				}
@@ -343,6 +348,19 @@ export function ItemList() {
 					const indexA = NORMALIZED_TYPE_ORDER.indexOf(categoryA)
 					const indexB = NORMALIZED_TYPE_ORDER.indexOf(categoryB)
 					return (indexA - indexB) * direction
+				})
+			case 'rarity':
+				// Sort by rarity (Legendary > Epic > Rare > Uncommon > Common)
+				return itemsCopy.sort((a, b) => {
+					const rarityOrder = ['Legendary', 'Epic', 'Rare', 'Uncommon', 'Common', 'Unknown']
+					const rarityA = a.rarity || 'Unknown'
+					const rarityB = b.rarity || 'Unknown'
+					const indexA = rarityOrder.indexOf(rarityA)
+					const indexB = rarityOrder.indexOf(rarityB)
+					const finalIndexA = indexA === -1 ? 999 : indexA
+					const finalIndexB = indexB === -1 ? 999 : indexB
+					// Invert direction: lower index = better rarity, so desc = ascending index
+					return (finalIndexA - finalIndexB) * -direction
 				})
 			case 'value':
 				return itemsCopy.sort((a, b) => {
@@ -488,21 +506,24 @@ export function ItemList() {
 								<Text className="text-center text-zinc-500">No items match your filters</Text>
 							</div>
 						) : filters.displayMode === 'list' ? (
-							<div className="space-y-2">
-								{group.items.map(item => {
-									const req = itemRequirements.get(item.id)
-									const recipes = usedInRecipes.get(item.id)
-									const sources = recycledFrom.get(item.id)
-									return (
-										<ItemListRow
-											key={`${group.title}-${item.id}`}
-											item={item}
-											requirements={req}
-											usedInRecipes={recipes}
-											recycledFrom={sources}
-										/>
-									)
-								})}
+							<div>
+								<ItemListHeader />
+								<div>
+									{group.items.map(item => {
+										const req = itemRequirements.get(item.id)
+										const recipes = usedInRecipes.get(item.id)
+										const sources = recycledFrom.get(item.id)
+										return (
+											<ItemListRow
+												key={`${group.title}-${item.id}`}
+												item={item}
+												requirements={req}
+												usedInRecipes={recipes}
+												recycledFrom={sources}
+											/>
+										)
+									})}
+								</div>
 							</div>
 						) : (
 							<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

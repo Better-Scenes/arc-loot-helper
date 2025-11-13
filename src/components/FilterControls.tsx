@@ -13,7 +13,7 @@ import type { FilterMode } from './TriStateCheckbox'
 
 export type GroupByOption = 'none' | 'requirement' | 'rarity' | 'type'
 export type RarityFilter = 'common' | 'uncommon' | 'rare' | 'legendary'
-export type SortField = 'name' | 'type' | 'value'
+export type SortField = 'name' | 'type' | 'rarity' | 'value'
 export type SortDirection = 'asc' | 'desc'
 export type DisplayMode = 'grid' | 'list'
 
