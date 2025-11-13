@@ -30,13 +30,13 @@ interface ItemListRowProps {
  */
 export function ItemListHeader() {
 	return (
-		<div className="grid grid-cols-[48px_minmax(150px,200px)_220px_80px_70px_80px_minmax(200px,1fr)] items-center gap-3 rounded-t border border-b-0 border-white/10 bg-zinc-800/50 px-3 py-2">
+		<div className="grid grid-cols-[48px_minmax(150px,200px)_220px_70px_70px_80px_minmax(250px,1fr)] items-center gap-2 rounded-t border border-b-0 border-white/10 bg-zinc-800/50 px-3 py-2">
 			<div className="text-center text-[10px] font-medium text-zinc-400">Icon</div>
 			<div className="text-left text-[10px] font-medium text-zinc-400">Item Name</div>
 			<div className="text-left text-[10px] font-medium text-zinc-400">Rarity / Category</div>
 			<div className="text-right text-[10px] font-medium text-zinc-400">Value</div>
-			<div className="text-right text-[10px] font-medium text-zinc-400">Weight</div>
 			<div className="text-right text-[10px] font-medium text-zinc-400">$/kg</div>
+			<div className="text-right text-[10px] font-medium text-zinc-400">$/Stack</div>
 			<div className="text-left text-[10px] font-medium text-zinc-400">Properties</div>
 		</div>
 	)
@@ -69,12 +69,14 @@ export function ItemListRow({ item, requirements, usedInRecipes, recycledFrom }:
 		(item.recyclesInto && Object.keys(item.recyclesInto).length > 0) ||
 		(item.salvagesInto && Object.keys(item.salvagesInto).length > 0)
 
+	const stackSize = item.stackSize || 1
+
 	const imageUrl =
 		item.imageFilename ||
 		`https://raw.githubusercontent.com/RaidTheory/arcraiders-data/main/images/items/${item.id}.png`
 
 	return (
-		<div className="grid grid-cols-[48px_minmax(150px,200px)_220px_80px_70px_80px_minmax(200px,1fr)] items-center gap-3 border-b border-l border-r border-white/10 bg-zinc-900 px-3 py-2 transition last:rounded-b hover:border-white/20 hover:bg-zinc-800">
+		<div className="grid grid-cols-[48px_minmax(150px,200px)_220px_70px_70px_80px_minmax(250px,1fr)] items-center gap-2 border-b border-l border-r border-white/10 bg-zinc-900 px-3 py-2 transition last:rounded-b hover:border-white/20 hover:bg-zinc-800">
 			{/* Item Icon */}
 			<div className="flex items-center justify-center">
 				<ItemIcon imageUrl={imageUrl} itemName={item.name.en} rarity={item.rarity} size="xs" />
@@ -97,24 +99,26 @@ export function ItemListRow({ item, requirements, usedInRecipes, recycledFrom }:
 
 			{/* Value */}
 			<div className="text-right">
-				<div className="text-xs font-medium text-zinc-200">
+				<div className="text-xs font-medium text-emerald-400">
 					{item.value?.toLocaleString() || '0'}
 				</div>
 			</div>
 
-			{/* Weight */}
-			<div className="text-right">
-				<div className="text-xs font-medium text-zinc-200">{item.weightKg ?? 0} kg</div>
-			</div>
-
 			{/* $/kg */}
 			<div className="text-right">
-				<div className="text-xs font-medium text-primary">
+				<div className="text-xs font-medium text-emerald-400">
 					{item.value && item.weightKg && item.weightKg > 0
 						? Math.round(item.value / item.weightKg).toLocaleString()
 						: item.value && !item.weightKg
 							? '∞'
 							: '0'}
+				</div>
+			</div>
+
+			{/* $/Stack */}
+			<div className="text-right">
+				<div className="text-xs font-medium text-emerald-400">
+					{item.value ? (item.value * stackSize).toLocaleString() : '0'}
 				</div>
 			</div>
 
