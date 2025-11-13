@@ -26,7 +26,12 @@ function getNextState(current: FilterMode): FilterMode {
 /**
  * TriStateCheckbox displays a checkbox that cycles through ignore/include/exclude states
  */
-export function TriStateCheckbox({ label, value, onChange, className = '' }: TriStateCheckboxProps) {
+export function TriStateCheckbox({
+	label,
+	value,
+	onChange,
+	className = '',
+}: TriStateCheckboxProps) {
 	const handleClick = () => {
 		onChange(getNextState(value))
 	}

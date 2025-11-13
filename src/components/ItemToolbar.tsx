@@ -4,13 +4,11 @@
  */
 
 import { Dropdown, DropdownButton, DropdownItem, DropdownMenu } from './dropdown'
-import { Checkbox, CheckboxField } from './checkbox'
-import { Label } from './fieldset'
 import { Button } from './button'
 import { ArrowUpIcon, ArrowDownIcon } from '@heroicons/react/16/solid'
 import { Squares2X2Icon, ListBulletIcon } from '@heroicons/react/20/solid'
 import { NORMALIZED_TYPE_ORDER, type NormalizedItemType } from '../utils/normalizeGameData'
-import type { FilterState, GroupByOption, RarityFilter, SortField, DisplayMode } from './FilterControls'
+import type { FilterState, GroupByOption, SortField, DisplayMode } from './FilterControls'
 import { TriStateCheckbox, type FilterMode } from './TriStateCheckbox'
 
 interface ItemToolbarProps {
@@ -58,12 +56,35 @@ const sortFieldOptions: Array<{
 	descLabel: string
 }> = [
 	{ value: 'name', label: 'Name', defaultDirection: 'asc', ascLabel: 'A-Z', descLabel: 'Z-A' },
-	{ value: 'type', label: 'Type', defaultDirection: 'asc', ascLabel: 'Default', descLabel: 'Reverse' },
-	{ value: 'rarity', label: 'Rarity', defaultDirection: 'desc', ascLabel: 'Worst-Best', descLabel: 'Best-Worst' },
-	{ value: 'value', label: 'Value', defaultDirection: 'desc', ascLabel: 'Low-High', descLabel: 'High-Low' },
+	{
+		value: 'type',
+		label: 'Type',
+		defaultDirection: 'asc',
+		ascLabel: 'Default',
+		descLabel: 'Reverse',
+	},
+	{
+		value: 'rarity',
+		label: 'Rarity',
+		defaultDirection: 'desc',
+		ascLabel: 'Worst-Best',
+		descLabel: 'Best-Worst',
+	},
+	{
+		value: 'value',
+		label: 'Value',
+		defaultDirection: 'desc',
+		ascLabel: 'Low-High',
+		descLabel: 'High-Low',
+	},
 ]
 
-export function ItemToolbar({ filters, onFilterChange, itemCount, filteredCount }: ItemToolbarProps) {
+export function ItemToolbar({
+	filters,
+	onFilterChange,
+	itemCount,
+	filteredCount,
+}: ItemToolbarProps) {
 	const handleGroupByChange = (value: GroupByOption) => {
 		onFilterChange({ ...filters, groupBy: value })
 	}
@@ -143,15 +164,15 @@ export function ItemToolbar({ filters, onFilterChange, itemCount, filteredCount 
 				epic: 'ignore',
 			},
 			categoryFilters: {
-				'Augments': 'ignore',
-				'Shields': 'ignore',
-				'Weapons': 'ignore',
-				'Ammunition': 'ignore',
+				Augments: 'ignore',
+				Shields: 'ignore',
+				Weapons: 'ignore',
+				Ammunition: 'ignore',
 				'Weapon Mods': 'ignore',
 				'Quick Use': 'ignore',
-				'Keys': 'ignore',
+				Keys: 'ignore',
 				'Crafting Materials': 'ignore',
-				'Misc': 'ignore',
+				Misc: 'ignore',
 			},
 			sortField: 'name',
 			sortDirection: 'asc',
@@ -160,16 +181,27 @@ export function ItemToolbar({ filters, onFilterChange, itemCount, filteredCount 
 		})
 	}
 
-	const selectedGroupBy = groupByOptions.find(opt => opt.value === filters.groupBy) || groupByOptions[0]
-	const selectedSortField = sortFieldOptions.find(opt => opt.value === filters.sortField) || sortFieldOptions[0]
-	const sortDirectionLabel = filters.sortDirection === 'asc' ? selectedSortField.ascLabel : selectedSortField.descLabel
+	const selectedGroupBy =
+		groupByOptions.find(opt => opt.value === filters.groupBy) || groupByOptions[0]
+	const selectedSortField =
+		sortFieldOptions.find(opt => opt.value === filters.sortField) || sortFieldOptions[0]
+	const sortDirectionLabel =
+		filters.sortDirection === 'asc' ? selectedSortField.ascLabel : selectedSortField.descLabel
 
 	// Count active filters (non-ignore states)
-	const activeMetaFilterCount = Object.values(filters.metaFilters).filter(v => v !== 'ignore').length
-	const activeRarityFilterCount = Object.values(filters.rarityFilters).filter(v => v !== 'ignore').length
-	const activeCategoryFilterCount = Object.values(filters.categoryFilters).filter(v => v !== 'ignore').length
-	const hasActiveFilters = activeMetaFilterCount > 0 || activeRarityFilterCount > 0 || activeCategoryFilterCount > 0
-	const activeFilterCount = activeMetaFilterCount + activeRarityFilterCount + activeCategoryFilterCount
+	const activeMetaFilterCount = Object.values(filters.metaFilters).filter(
+		v => v !== 'ignore'
+	).length
+	const activeRarityFilterCount = Object.values(filters.rarityFilters).filter(
+		v => v !== 'ignore'
+	).length
+	const activeCategoryFilterCount = Object.values(filters.categoryFilters).filter(
+		v => v !== 'ignore'
+	).length
+	const hasActiveFilters =
+		activeMetaFilterCount > 0 || activeRarityFilterCount > 0 || activeCategoryFilterCount > 0
+	const activeFilterCount =
+		activeMetaFilterCount + activeRarityFilterCount + activeCategoryFilterCount
 
 	return (
 		<div className="flex flex-wrap items-center gap-2 rounded-lg border border-white/10 bg-zinc-900 px-4 py-3">
@@ -206,7 +238,7 @@ export function ItemToolbar({ filters, onFilterChange, itemCount, filteredCount 
 										key={option.key}
 										label={option.label}
 										value={filters.metaFilters[option.key]}
-										onChange={(value) => handleMetaFilterChange(option.key, value)}
+										onChange={value => handleMetaFilterChange(option.key, value)}
 									/>
 								))}
 							</div>
@@ -223,7 +255,7 @@ export function ItemToolbar({ filters, onFilterChange, itemCount, filteredCount 
 										key={option.key}
 										label={option.label}
 										value={filters.metaFilters[option.key]}
-										onChange={(value) => handleMetaFilterChange(option.key, value)}
+										onChange={value => handleMetaFilterChange(option.key, value)}
 									/>
 								))}
 							</div>
@@ -240,7 +272,7 @@ export function ItemToolbar({ filters, onFilterChange, itemCount, filteredCount 
 										key={option.key}
 										label={option.label}
 										value={filters.rarityFilters[option.key]}
-										onChange={(value) => handleRarityFilterChange(option.key, value)}
+										onChange={value => handleRarityFilterChange(option.key, value)}
 									/>
 								))}
 							</div>
@@ -257,7 +289,7 @@ export function ItemToolbar({ filters, onFilterChange, itemCount, filteredCount 
 										key={category}
 										label={category}
 										value={filters.categoryFilters[category]}
-										onChange={(value) => handleCategoryFilterChange(category, value)}
+										onChange={value => handleCategoryFilterChange(category, value)}
 									/>
 								))}
 							</div>
@@ -281,7 +313,8 @@ export function ItemToolbar({ filters, onFilterChange, itemCount, filteredCount 
 			{/* Sort Dropdown */}
 			<Dropdown>
 				<DropdownButton outline>
-					<span className="text-zinc-400">Sort:</span> {selectedSortField.label} ({sortDirectionLabel})
+					<span className="text-zinc-400">Sort:</span> {selectedSortField.label} (
+					{sortDirectionLabel})
 				</DropdownButton>
 				<DropdownMenu>
 					{sortFieldOptions.map(option => {

@@ -19,7 +19,12 @@ interface ItemCardProps {
 		sources: Set<'quests' | 'hideout' | 'projects'>
 	}
 	usedInRecipes?: Array<{ itemId: string; itemName: string; quantity: number }>
-	recycledFrom?: Array<{ itemId: string; itemName: string; recycleQty?: number; salvageQty?: number }>
+	recycledFrom?: Array<{
+		itemId: string
+		itemName: string
+		recycleQty?: number
+		salvageQty?: number
+	}>
 	allItems: Item[]
 	showDetails?: boolean
 }
@@ -43,7 +48,14 @@ function getRarityColor(
 /**
  * ItemCard displays item information in a card layout
  */
-export function ItemCard({ item, requirements, usedInRecipes, recycledFrom, allItems, showDetails = false }: ItemCardProps) {
+export function ItemCard({
+	item,
+	requirements,
+	usedInRecipes,
+	recycledFrom,
+	allItems,
+	showDetails = false,
+}: ItemCardProps) {
 	const [isExpanded, setIsExpanded] = useState(false)
 	const rarityColor = getRarityColor(item.rarity)
 	const isNotRequired = !requirements
@@ -51,7 +63,9 @@ export function ItemCard({ item, requirements, usedInRecipes, recycledFrom, allI
 	const isIngredient = usedInRecipes && usedInRecipes.length > 0
 	const isCraftable = !!item.recipe
 	const isReclaimed = recycledFrom && recycledFrom.length > 0
-	const isRecyclable = (item.recyclesInto && Object.keys(item.recyclesInto).length > 0) || (item.salvagesInto && Object.keys(item.salvagesInto).length > 0)
+	const isRecyclable =
+		(item.recyclesInto && Object.keys(item.recyclesInto).length > 0) ||
+		(item.salvagesInto && Object.keys(item.salvagesInto).length > 0)
 	const stackSize = item.stackSize || 1
 
 	// Show details if either globally enabled OR locally expanded
@@ -113,12 +127,7 @@ export function ItemCard({ item, requirements, usedInRecipes, recycledFrom, allI
 				{/* Header with image, name and rarity */}
 				<div className="mb-3 flex items-start gap-3">
 					{/* Item Image */}
-					<ItemIcon
-						imageUrl={imageUrl}
-						itemName={item.name.en}
-						rarity={item.rarity}
-						size="sm"
-					/>
+					<ItemIcon imageUrl={imageUrl} itemName={item.name.en} rarity={item.rarity} size="sm" />
 
 					{/* Name and Category */}
 					<div className="min-w-0 flex-1">
@@ -189,19 +198,13 @@ export function ItemCard({ item, requirements, usedInRecipes, recycledFrom, allI
 
 						{/* Meta Tags */}
 						{isIngredient && (
-							<Badge
-								color="purple"
-								title="This item is used as an ingredient in crafting recipes"
-							>
+							<Badge color="purple" title="This item is used as an ingredient in crafting recipes">
 								Ingredient
 							</Badge>
 						)}
 
 						{isCraftable && (
-							<Badge
-								color="sky"
-								title="This item can be crafted from other items"
-							>
+							<Badge color="sky" title="This item can be crafted from other items">
 								Craftable
 							</Badge>
 						)}
@@ -216,10 +219,7 @@ export function ItemCard({ item, requirements, usedInRecipes, recycledFrom, allI
 						)}
 
 						{isRecyclable && (
-							<Badge
-								color="lime"
-								title="This item can be recycled or salvaged into materials"
-							>
+							<Badge color="lime" title="This item can be recycled or salvaged into materials">
 								Recyclable
 							</Badge>
 						)}
@@ -289,9 +289,10 @@ export function ItemCard({ item, requirements, usedInRecipes, recycledFrom, allI
 										const salvageQty = source.salvageQty ?? 0
 
 										// If any salvage value exists, show both; otherwise only recycle
-										const label = salvageQty > 0
-											? `${source.itemName} (×${recycleQty}/×${salvageQty})`
-											: `${source.itemName} (×${recycleQty})`
+										const label =
+											salvageQty > 0
+												? `${source.itemName} (×${recycleQty}/×${salvageQty})`
+												: `${source.itemName} (×${recycleQty})`
 
 										return (
 											<Badge key={source.itemId} color="lime">
@@ -307,7 +308,10 @@ export function ItemCard({ item, requirements, usedInRecipes, recycledFrom, allI
 						{item.recipe && (
 							<div className="mb-3">
 								<div className="mb-2 text-xs text-zinc-500">
-									Crafted from{item.craftBench && ` (${Array.isArray(item.craftBench) ? item.craftBench.join(', ') : item.craftBench})`}:
+									Crafted from
+									{item.craftBench &&
+										` (${Array.isArray(item.craftBench) ? item.craftBench.join(', ') : item.craftBench})`}
+									:
 								</div>
 								<div className="flex flex-wrap gap-2">
 									{Object.entries(item.recipe).map(([ingredientId, quantity]) => {
@@ -342,23 +346,15 @@ export function ItemCard({ item, requirements, usedInRecipes, recycledFrom, allI
 								<div className="mb-2 text-xs text-zinc-500">Required in:</div>
 								<div className="flex flex-wrap gap-2">
 									{requirements.quests > 0 && (
-										<Badge color="blue">
-											Quests (×{requirements.quests})
-										</Badge>
+										<Badge color="blue">Quests (×{requirements.quests})</Badge>
 									)}
 									{requirements.hideout > 0 && (
-										<Badge color="blue">
-											Hideout (×{requirements.hideout})
-										</Badge>
+										<Badge color="blue">Hideout (×{requirements.hideout})</Badge>
 									)}
 									{requirements.projects > 0 && (
-										<Badge color="blue">
-											Projects (×{requirements.projects})
-										</Badge>
+										<Badge color="blue">Projects (×{requirements.projects})</Badge>
 									)}
-									<Badge color="blue">
-										Total (×{requirements.total})
-									</Badge>
+									<Badge color="blue">Total (×{requirements.total})</Badge>
 								</div>
 							</div>
 						)}

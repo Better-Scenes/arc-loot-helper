@@ -89,10 +89,7 @@ export function ItemIcon({ imageUrl, itemName, rarity, size = 'md' }: ItemIconPr
 					viewBox="0 0 100 100"
 					preserveAspectRatio="none"
 				>
-					<path
-						d="M 0 100 L 0 0 A 100 100 0 0 0 100 100 Z"
-						className={fillColor}
-					/>
+					<path d="M 0 100 L 0 0 A 100 100 0 0 0 100 100 Z" className={fillColor} />
 				</svg>
 
 				{/* Internal glow gradient from corner */}

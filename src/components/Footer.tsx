@@ -9,8 +9,8 @@ export function Footer() {
 			<div className="mx-auto max-w-7xl px-6 lg:px-8">
 				<div className="space-y-4 text-center text-sm text-zinc-400">
 					<p>
-						<strong className="text-zinc-300">Legal Disclaimer:</strong> This is an unofficial fan-made
-						tool. All game content, assets, and data are the property of{' '}
+						<strong className="text-zinc-300">Legal Disclaimer:</strong> This is an unofficial
+						fan-made tool. All game content, assets, and data are the property of{' '}
 						<a
 							href="https://www.embark-studios.com/"
 							target="_blank"
@@ -19,8 +19,8 @@ export function Footer() {
 						>
 							Embark Studios
 						</a>
-						. ARC Raiders™ is a trademark of Embark Studios. This project is not affiliated with, endorsed
-						by, or sponsored by Embark Studios.
+						. ARC Raiders™ is a trademark of Embark Studios. This project is not affiliated with,
+						endorsed by, or sponsored by Embark Studios.
 					</p>
 					<p>
 						<strong className="text-zinc-300">Data Source:</strong> Game data provided by{' '}

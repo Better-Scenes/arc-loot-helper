@@ -17,7 +17,12 @@ interface ItemListRowProps {
 		sources: Set<'quests' | 'hideout' | 'projects'>
 	}
 	usedInRecipes?: Array<{ itemId: string; itemName: string; quantity: number }>
-	recycledFrom?: Array<{ itemId: string; itemName: string; recycleQty?: number; salvageQty?: number }>
+	recycledFrom?: Array<{
+		itemId: string
+		itemName: string
+		recycleQty?: number
+		salvageQty?: number
+	}>
 }
 
 /**
@@ -60,8 +65,9 @@ export function ItemListRow({ item, requirements, usedInRecipes, recycledFrom }:
 	const isIngredient = usedInRecipes && usedInRecipes.length > 0
 	const isCraftable = !!item.recipe
 	const isReclaimed = recycledFrom && recycledFrom.length > 0
-	const isRecyclable = (item.recyclesInto && Object.keys(item.recyclesInto).length > 0) || (item.salvagesInto && Object.keys(item.salvagesInto).length > 0)
-	const stackSize = item.stackSize || 1
+	const isRecyclable =
+		(item.recyclesInto && Object.keys(item.recyclesInto).length > 0) ||
+		(item.salvagesInto && Object.keys(item.salvagesInto).length > 0)
 
 	const imageUrl =
 		item.imageFilename ||
@@ -71,12 +77,7 @@ export function ItemListRow({ item, requirements, usedInRecipes, recycledFrom }:
 		<div className="grid grid-cols-[48px_minmax(150px,200px)_220px_80px_70px_80px_minmax(200px,1fr)] items-center gap-3 border-b border-l border-r border-white/10 bg-zinc-900 px-3 py-2 transition last:rounded-b hover:border-white/20 hover:bg-zinc-800">
 			{/* Item Icon */}
 			<div className="flex items-center justify-center">
-				<ItemIcon
-					imageUrl={imageUrl}
-					itemName={item.name.en}
-					rarity={item.rarity}
-					size="xs"
-				/>
+				<ItemIcon imageUrl={imageUrl} itemName={item.name.en} rarity={item.rarity} size="xs" />
 			</div>
 
 			{/* Item Name */}
@@ -96,7 +97,9 @@ export function ItemListRow({ item, requirements, usedInRecipes, recycledFrom }:
 
 			{/* Value */}
 			<div className="text-right">
-				<div className="text-xs font-medium text-zinc-200">{item.value?.toLocaleString() || '0'}</div>
+				<div className="text-xs font-medium text-zinc-200">
+					{item.value?.toLocaleString() || '0'}
+				</div>
 			</div>
 
 			{/* Weight */}

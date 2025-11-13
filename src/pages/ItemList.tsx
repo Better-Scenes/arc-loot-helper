@@ -48,15 +48,15 @@ export function ItemList() {
 			epic: 'ignore',
 		},
 		categoryFilters: {
-			'Augments': 'ignore',
-			'Shields': 'ignore',
-			'Weapons': 'ignore',
-			'Ammunition': 'ignore',
+			Augments: 'ignore',
+			Shields: 'ignore',
+			Weapons: 'ignore',
+			Ammunition: 'ignore',
 			'Weapon Mods': 'ignore',
 			'Quick Use': 'ignore',
-			'Keys': 'ignore',
+			Keys: 'ignore',
 			'Crafting Materials': 'ignore',
-			'Misc': 'ignore',
+			Misc: 'ignore',
 		},
 		sortField: 'rarity',
 		sortDirection: 'desc',
@@ -66,14 +66,16 @@ export function ItemList() {
 
 	// Calculate what recipes use each item
 	const usedInRecipes = useMemo(() => {
-		if (!items) return new Map<string, Array<{ itemId: string; itemName: string; quantity: number }>>()
+		if (!items)
+			return new Map<string, Array<{ itemId: string; itemName: string; quantity: number }>>()
 
 		// Deduplicate items first
-		const uniqueItems = Array.from(
-			new Map(items.map(item => [item.id, item])).values()
-		)
+		const uniqueItems = Array.from(new Map(items.map(item => [item.id, item])).values())
 
-		const recipeMap = new Map<string, Array<{ itemId: string; itemName: string; quantity: number }>>()
+		const recipeMap = new Map<
+			string,
+			Array<{ itemId: string; itemName: string; quantity: number }>
+		>()
 
 		for (const item of uniqueItems) {
 			if (item.recipe) {
@@ -96,14 +98,19 @@ export function ItemList() {
 
 	// Calculate what items recycle/salvage into this item
 	const recycledFrom = useMemo(() => {
-		if (!items) return new Map<string, Array<{ itemId: string; itemName: string; recycleQty?: number; salvageQty?: number }>>()
+		if (!items)
+			return new Map<
+				string,
+				Array<{ itemId: string; itemName: string; recycleQty?: number; salvageQty?: number }>
+			>()
 
 		// Deduplicate items first
-		const uniqueItems = Array.from(
-			new Map(items.map(item => [item.id, item])).values()
-		)
+		const uniqueItems = Array.from(new Map(items.map(item => [item.id, item])).values())
 
-		const recycleMap = new Map<string, Array<{ itemId: string; itemName: string; recycleQty?: number; salvageQty?: number }>>()
+		const recycleMap = new Map<
+			string,
+			Array<{ itemId: string; itemName: string; recycleQty?: number; salvageQty?: number }>
+		>()
 
 		for (const item of uniqueItems) {
 			// Check recyclesInto
@@ -236,9 +243,7 @@ export function ItemList() {
 		if (!items) return []
 
 		// First deduplicate items by ID
-		const uniqueItems = Array.from(
-			new Map(items.map(item => [item.id, item])).values(),
-		)
+		const uniqueItems = Array.from(new Map(items.map(item => [item.id, item])).values())
 
 		return uniqueItems.filter(item => {
 			// Hide items without names (incomplete data)
@@ -255,7 +260,13 @@ export function ItemList() {
 			}
 
 			// Rarity tri-state filters
-			const itemRarity = item.rarity?.toLowerCase() as 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary' | undefined
+			const itemRarity = item.rarity?.toLowerCase() as
+				| 'common'
+				| 'uncommon'
+				| 'rare'
+				| 'epic'
+				| 'legendary'
+				| undefined
 			for (const [rarity, mode] of Object.entries(filters.rarityFilters)) {
 				if (mode === 'ignore') continue
 
@@ -303,7 +314,9 @@ export function ItemList() {
 				projects: req?.sources.has('projects') || false,
 				craftable: !!item.recipe,
 				ingredient: !!recipes && recipes.length > 0,
-				recyclable: (!!item.recyclesInto && Object.keys(item.recyclesInto).length > 0) || (!!item.salvagesInto && Object.keys(item.salvagesInto).length > 0),
+				recyclable:
+					(!!item.recyclesInto && Object.keys(item.recyclesInto).length > 0) ||
+					(!!item.salvagesInto && Object.keys(item.salvagesInto).length > 0),
 				reclaimed: !!sources && sources.length > 0,
 			}
 
@@ -343,8 +356,8 @@ export function ItemList() {
 			case 'type':
 				// Sort by category (meta group) using normalized type order
 				return itemsCopy.sort((a, b) => {
-					const categoryA = a.category || 'Misc'
-					const categoryB = b.category || 'Misc'
+					const categoryA = (a.category || 'Misc') as (typeof NORMALIZED_TYPE_ORDER)[number]
+					const categoryB = (b.category || 'Misc') as (typeof NORMALIZED_TYPE_ORDER)[number]
 					const indexA = NORMALIZED_TYPE_ORDER.indexOf(categoryA)
 					const indexB = NORMALIZED_TYPE_ORDER.indexOf(categoryB)
 					return (indexA - indexB) * direction
@@ -402,8 +415,10 @@ export function ItemList() {
 				groups.get(category)!.push(item)
 			}
 			// Sort by the normalized type order (game inventory order)
-			return NORMALIZED_TYPE_ORDER.filter(cat => groups.has(cat))
-				.map(category => ({ title: category, items: groups.get(category)! }))
+			return NORMALIZED_TYPE_ORDER.filter(cat => groups.has(cat)).map(category => ({
+				title: category,
+				items: groups.get(category)!,
+			}))
 		}
 
 		if (filters.groupBy === 'requirement') {
@@ -433,18 +448,18 @@ export function ItemList() {
 		return [{ title: 'All Items', items: sortedItems }]
 	}, [sortedItems, filters.groupBy, itemRequirements])
 
-	// Statistics
-	const stats = useMemo(() => {
-		const totalItems = items?.length || 0
-		const itemsNeeded = itemRequirements.size
-		const totalQuantity = Array.from(itemRequirements.values()).reduce(
-			(sum, req) => sum + req.total,
-			0
-		)
-		const safeToSalvage = totalItems - itemsNeeded
+	// Statistics (computed but not currently used in the UI)
+	// const stats = useMemo(() => {
+	// 	const totalItems = items?.length || 0
+	// 	const itemsNeeded = itemRequirements.size
+	// 	const totalQuantity = Array.from(itemRequirements.values()).reduce(
+	// 		(sum, req) => sum + req.total,
+	// 		0
+	// 	)
+	// 	const safeToSalvage = totalItems - itemsNeeded
 
-		return { totalItems, itemsNeeded, totalQuantity, safeToSalvage }
-	}, [items, itemRequirements])
+	// 	return { totalItems, itemsNeeded, totalQuantity, safeToSalvage }
+	// }, [items, itemRequirements])
 
 	// Handlers
 	const handleSearch = useCallback((query: string) => {
