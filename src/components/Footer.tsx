@@ -5,9 +5,9 @@
 
 export function Footer() {
 	return (
-		<footer className="mt-16 border-t border-white/10 bg-zinc-900/50 py-8">
+		<footer className="mt-12 border-t border-white/10 bg-zinc-900/50 py-6">
 			<div className="mx-auto max-w-7xl px-6 lg:px-8">
-				<div className="space-y-4 text-center text-sm text-zinc-400">
+				<div className="space-y-3 text-center text-xs text-zinc-400">
 					<p>
 						<strong className="text-zinc-300">Legal Disclaimer:</strong> This is an unofficial
 						fan-made tool. All game content, assets, and data are the property of{' '}

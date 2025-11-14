@@ -25,6 +25,7 @@ interface ItemListRowProps {
 		itemName: string
 		recycleQty: number
 	}>
+	isLastInGroup?: boolean
 }
 
 /**
@@ -60,7 +61,7 @@ function getRarityColor(
 	return 'zinc'
 }
 
-export const ItemListRow = memo(function ItemListRow({ item, requirements, usedInRecipes, recycledFrom }: ItemListRowProps) {
+export const ItemListRow = memo(function ItemListRow({ item, requirements, usedInRecipes, recycledFrom, isLastInGroup }: ItemListRowProps) {
 	const rarityColor = getRarityColor(item.rarity)
 	const isNotRequired = !requirements
 	const isRequired = !!requirements
@@ -73,7 +74,7 @@ export const ItemListRow = memo(function ItemListRow({ item, requirements, usedI
 
 	return (
 		<Profiler id={`ItemListRow-${item.id}`} onRender={onRenderCallback}>
-			<div className="grid grid-cols-[48px_minmax(150px,200px)_220px_70px_70px_80px_minmax(250px,1fr)] items-center gap-2 border-b border-l border-r border-white/10 bg-zinc-900 px-3 py-2 transition last:rounded-b hover:border-white/20 hover:bg-zinc-800">
+			<div className={`grid grid-cols-[48px_minmax(150px,200px)_220px_70px_70px_80px_minmax(250px,1fr)] items-center gap-2 border-b border-l border-r border-white/10 bg-zinc-900 px-3 py-2 transition hover:border-white/20 hover:bg-zinc-800 ${isLastInGroup ? 'rounded-b' : ''}`}>
 			{/* Item Icon */}
 			<div className="flex items-center justify-center">
 				<ItemIcon

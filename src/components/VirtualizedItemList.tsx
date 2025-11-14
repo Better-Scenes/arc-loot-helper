@@ -1,9 +1,10 @@
 /**
  * VirtualizedItemList - Virtualized list for ItemListRows using TanStack Virtual
+ * Uses window scrolling for maximum viewport space
  */
 
 import { useRef, useMemo } from 'react'
-import { useVirtualizer } from '@tanstack/react-virtual'
+import { useWindowVirtualizer } from '@tanstack/react-virtual'
 import { ItemListRow, ItemListHeader } from './ItemListRow'
 import { Heading } from './heading'
 import { Text } from './text'
@@ -82,27 +83,26 @@ export function VirtualizedItemList({
 		return rows
 	}, [groups])
 
-	// Create row virtualizer
-	const rowVirtualizer = useVirtualizer({
+	// Create row virtualizer with window scroll and dynamic measurement
+	const rowVirtualizer = useWindowVirtualizer({
 		count: virtualRows.length,
-		getScrollElement: () => parentRef.current,
-		estimateSize: index => {
-			const row = virtualRows[index]
-			if (row.type === 'header') return 60 // Group heading height
-			if (row.type === 'tableHeader') return 45 // Table header height
-			return 60 // ItemListRow height
-		},
-		overscan: 10, // Render 10 extra rows above/below viewport
+		estimateSize: () => 60, // Initial estimate, will be measured dynamically
+		overscan: 10,
+		measureElement:
+			typeof window !== 'undefined'
+				? element => {
+						// Measure the actual element height including margins
+						const height = element.getBoundingClientRect().height
+						const style = window.getComputedStyle(element)
+						const marginTop = parseFloat(style.marginTop)
+						const marginBottom = parseFloat(style.marginBottom)
+						return height + marginTop + marginBottom
+				  }
+				: undefined,
 	})
 
 	return (
-		<div
-			ref={parentRef}
-			style={{
-				height: 'calc(100vh - 250px)', // Account for header and toolbar
-				overflow: 'auto',
-			}}
-		>
+		<div ref={parentRef}>
 			<div
 				style={{
 					height: `${rowVirtualizer.getTotalSize()}px`,
@@ -114,18 +114,21 @@ export function VirtualizedItemList({
 					const row = virtualRows[virtualRow.index]
 
 					if (row.type === 'header') {
+						// Add top margin to headers after the first group for spacing
+						const isFirstHeader = virtualRow.index === 0
 						return (
 							<div
 								key={`header-${row.groupTitle}`}
+								data-index={virtualRow.index}
+								ref={rowVirtualizer.measureElement}
 								style={{
 									position: 'absolute',
 									top: 0,
 									left: 0,
 									width: '100%',
-									height: `${virtualRow.size}px`,
 									transform: `translateY(${virtualRow.start}px)`,
 								}}
-								className="mb-4"
+								className={isFirstHeader ? 'mb-4' : 'mb-4 mt-8'}
 							>
 								<Heading level={2}>
 									{row.groupTitle}
@@ -139,12 +142,13 @@ export function VirtualizedItemList({
 						return (
 							<div
 								key={`table-header-${virtualRow.index}`}
+								data-index={virtualRow.index}
+								ref={rowVirtualizer.measureElement}
 								style={{
 									position: 'absolute',
 									top: 0,
 									left: 0,
 									width: '100%',
-									height: `${virtualRow.size}px`,
 									transform: `translateY(${virtualRow.start}px)`,
 								}}
 							>
@@ -159,15 +163,21 @@ export function VirtualizedItemList({
 					const sources = recycledFrom.get(row.item.id)
 					const key = needsGroupKey ? `${row.groupTitle}-${row.item.id}` : row.item.id
 
+					// Check if this is the last item in the group
+					const isLastInGroup =
+						virtualRow.index === virtualRows.length - 1 ||
+						virtualRows[virtualRow.index + 1]?.type !== 'item'
+
 					return (
 						<div
 							key={key}
+							data-index={virtualRow.index}
+							ref={rowVirtualizer.measureElement}
 							style={{
 								position: 'absolute',
 								top: 0,
 								left: 0,
 								width: '100%',
-								height: `${virtualRow.size}px`,
 								transform: `translateY(${virtualRow.start}px)`,
 							}}
 						>
@@ -176,6 +186,7 @@ export function VirtualizedItemList({
 								requirements={req}
 								usedInRecipes={recipes}
 								recycledFrom={sources}
+								isLastInGroup={isLastInGroup}
 							/>
 						</div>
 					)

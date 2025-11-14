@@ -466,8 +466,8 @@ export function ItemList() {
 
 	return (
 		<div>
-			{/* Search and Toolbar */}
-			<div className="mb-8 space-y-4">
+			{/* Search and Toolbar - compact */}
+			<div className="mb-6 space-y-3">
 				{/* Search */}
 				<SearchBar onSearch={handleSearch} placeholder="Search items..." />
 
@@ -522,10 +522,11 @@ export function ItemList() {
 									<ItemListHeader />
 									<Profiler id={`list-${group.title}`} onRender={onRenderCallback}>
 										<div>
-											{group.items.map(item => {
+											{group.items.map((item, index) => {
 												const req = itemRequirements.get(item.id)
 												const recipes = usedInRecipes.get(item.id)
 												const sources = recycledFrom.get(item.id)
+												const isLastInGroup = index === group.items.length - 1
 												return (
 													<ItemListRow
 														key={needsGroupKey ? `${group.title}-${item.id}` : item.id}
@@ -533,6 +534,7 @@ export function ItemList() {
 														requirements={req}
 														usedInRecipes={recipes}
 														recycledFrom={sources}
+														isLastInGroup={isLastInGroup}
 													/>
 												)
 											})}

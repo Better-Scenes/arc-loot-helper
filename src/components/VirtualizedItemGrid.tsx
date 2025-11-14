@@ -1,10 +1,11 @@
 /**
  * VirtualizedItemGrid - Virtualized grid for ItemCards using TanStack Virtual
  * Chunks items into rows where each row contains multiple columns
+ * Uses window scrolling for maximum viewport space
  */
 
 import { useRef, useMemo, useState, useEffect } from 'react'
-import { useVirtualizer } from '@tanstack/react-virtual'
+import { useWindowVirtualizer } from '@tanstack/react-virtual'
 import { ItemCard } from './ItemCard'
 import { Heading } from './heading'
 import { Text } from './text'
@@ -106,29 +107,26 @@ export function VirtualizedItemGrid({
 		return rows
 	}, [groups, columnCount])
 
-	// Create row virtualizer
-	const rowVirtualizer = useVirtualizer({
+	// Create row virtualizer with window scroll and dynamic measurement
+	const rowVirtualizer = useWindowVirtualizer({
 		count: virtualRows.length,
-		getScrollElement: () => parentRef.current,
-		estimateSize: index => {
-			const row = virtualRows[index]
-			if (row.type === 'header') {
-				return 60 // Header height
-			}
-			// Estimate ItemCard height based on showDetails
-			return showDetails ? 600 : 400
-		},
-		overscan: 3, // Render 3 extra rows above/below viewport
+		estimateSize: () => 400, // Initial estimate, will be measured dynamically
+		overscan: 5,
+		measureElement:
+			typeof window !== 'undefined'
+				? element => {
+						// Measure the actual element height including margins
+						const height = element.getBoundingClientRect().height
+						const style = window.getComputedStyle(element)
+						const marginTop = parseFloat(style.marginTop)
+						const marginBottom = parseFloat(style.marginBottom)
+						return height + marginTop + marginBottom
+				  }
+				: undefined,
 	})
 
 	return (
-		<div
-			ref={parentRef}
-			style={{
-				height: 'calc(100vh - 250px)', // Account for header and toolbar
-				overflow: 'auto',
-			}}
-		>
+		<div ref={parentRef}>
 			<div
 				style={{
 					height: `${rowVirtualizer.getTotalSize()}px`,
@@ -143,12 +141,13 @@ export function VirtualizedItemGrid({
 						return (
 							<div
 								key={`header-${row.groupTitle}`}
+								data-index={virtualRow.index}
+								ref={rowVirtualizer.measureElement}
 								style={{
 									position: 'absolute',
 									top: 0,
 									left: 0,
 									width: '100%',
-									height: `${virtualRow.size}px`,
 									transform: `translateY(${virtualRow.start}px)`,
 								}}
 								className="mb-4"
@@ -165,15 +164,16 @@ export function VirtualizedItemGrid({
 					return (
 						<div
 							key={`row-${virtualRow.index}`}
+							data-index={virtualRow.index}
+							ref={rowVirtualizer.measureElement}
 							style={{
 								position: 'absolute',
 								top: 0,
 								left: 0,
 								width: '100%',
-								height: `${virtualRow.size}px`,
 								transform: `translateY(${virtualRow.start}px)`,
 							}}
-							className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"
+							className="mb-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3"
 						>
 							{row.items.map(item => {
 								const req = itemRequirements.get(item.id)
