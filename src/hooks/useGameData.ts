@@ -1,11 +1,11 @@
 /**
  * Custom React Hooks for Loading Game Data
- * Uses traditional useState + useEffect for reliable data fetching
+ * Now uses React Context for centralized data management
  */
 
-import { useState, useEffect } from 'react'
+import { useContext } from 'react'
+import { GameDataContext } from '../contexts/GameDataContext'
 import type { Item, Quest, HideoutModule, Project, SkillNode } from '../data/types'
-import { normalizeItems } from '../utils/normalizeGameData'
 
 /**
  * Hook result structure with loading state and error handling
@@ -28,137 +28,74 @@ export interface GameData {
 }
 
 /**
- * Fetch JSON data from a URL
- */
-async function fetchJson<T>(url: string): Promise<T> {
-	const response = await fetch(url)
-	if (!response.ok) {
-		throw new Error(`Failed to fetch ${url}: ${response.status} ${response.statusText}`)
-	}
-	return response.json()
-}
-
-/**
- * Generic hook for fetching data
- */
-function useFetchData<T>(url: string): UseDataResult<T> {
-	const [data, setData] = useState<T | null>(null)
-	const [loading, setLoading] = useState(true)
-	const [error, setError] = useState<Error | null>(null)
-
-	useEffect(() => {
-		let cancelled = false
-
-		async function loadData() {
-			try {
-				setLoading(true)
-				setError(null)
-				const result = await fetchJson<T>(url)
-
-				if (!cancelled) {
-					setData(result)
-					setLoading(false)
-				}
-			} catch (err) {
-				if (!cancelled) {
-					setError(err instanceof Error ? err : new Error(String(err)))
-					setLoading(false)
-				}
-			}
-		}
-
-		loadData()
-
-		// Cleanup function to prevent state updates after unmount
-		return () => {
-			cancelled = true
-		}
-	}, [url])
-
-	return { data, loading, error }
-}
-
-/**
- * Hook to load all game data
+ * Hook to access all game data from context
  */
 export function useGameData(): UseDataResult<GameData> {
-	const [data, setData] = useState<GameData | null>(null)
-	const [loading, setLoading] = useState(true)
-	const [error, setError] = useState<Error | null>(null)
+	const context = useContext(GameDataContext)
 
-	useEffect(() => {
-		let cancelled = false
+	if (!context) {
+		throw new Error('useGameData must be used within a GameDataProvider')
+	}
 
-		async function loadAllData() {
-			try {
-				setLoading(true)
-				setError(null)
-
-				// Fetch all data in parallel
-				const [rawItems, quests, hideoutModules, projects, skillNodes] = await Promise.all([
-					fetchJson<Item[]>('/data/items.json'),
-					fetchJson<Quest[]>('/data/quests.json'),
-					fetchJson<HideoutModule[]>('/data/hideoutModules.json'),
-					fetchJson<Project[]>('/data/projects.json'),
-					fetchJson<SkillNode[]>('/data/skillNodes.json'),
-				])
-
-				// Normalize items to use game's category types
-				const items = normalizeItems(rawItems)
-
-				if (!cancelled) {
-					setData({ items, quests, hideoutModules, projects, skillNodes })
-					setLoading(false)
-				}
-			} catch (err) {
-				if (!cancelled) {
-					setError(err instanceof Error ? err : new Error(String(err)))
-					setLoading(false)
-				}
-			}
-		}
-
-		loadAllData()
-
-		return () => {
-			cancelled = true
-		}
-	}, [])
-
-	return { data, loading, error }
+	return context
 }
 
 /**
- * Hook to load items data
+ * Hook to access items data from context
  */
 export function useItems(): UseDataResult<Item[]> {
-	return useFetchData<Item[]>('/data/items.json')
+	const { data, loading, error } = useGameData()
+	return {
+		data: data?.items || null,
+		loading,
+		error,
+	}
 }
 
 /**
- * Hook to load quests data
+ * Hook to access quests data from context
  */
 export function useQuests(): UseDataResult<Quest[]> {
-	return useFetchData<Quest[]>('/data/quests.json')
+	const { data, loading, error } = useGameData()
+	return {
+		data: data?.quests || null,
+		loading,
+		error,
+	}
 }
 
 /**
- * Hook to load hideout modules data
+ * Hook to access hideout modules data from context
  */
 export function useHideoutModules(): UseDataResult<HideoutModule[]> {
-	return useFetchData<HideoutModule[]>('/data/hideoutModules.json')
+	const { data, loading, error } = useGameData()
+	return {
+		data: data?.hideoutModules || null,
+		loading,
+		error,
+	}
 }
 
 /**
- * Hook to load projects data
+ * Hook to access projects data from context
  */
 export function useProjects(): UseDataResult<Project[]> {
-	return useFetchData<Project[]>('/data/projects.json')
+	const { data, loading, error } = useGameData()
+	return {
+		data: data?.projects || null,
+		loading,
+		error,
+	}
 }
 
 /**
- * Hook to load skill nodes data
+ * Hook to access skill nodes data from context
  */
 export function useSkillNodes(): UseDataResult<SkillNode[]> {
-	return useFetchData<SkillNode[]>('/data/skillNodes.json')
+	const { data, loading, error } = useGameData()
+	return {
+		data: data?.skillNodes || null,
+		loading,
+		error,
+	}
 }

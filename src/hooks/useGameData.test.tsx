@@ -1,10 +1,12 @@
 /**
  * Tests for Game Data Hooks
- * Unit tests focused on hook structure and behavior
+ * Unit tests focused on hook structure and behavior with Context
  */
 
 import { describe, it, expect } from 'vitest'
 import { renderHook } from '@testing-library/react'
+import type { ReactNode } from 'react'
+import { GameDataProvider } from '../contexts/GameDataContext'
 import {
 	useGameData,
 	useItems,
@@ -14,10 +16,17 @@ import {
 	useSkillNodes,
 } from './useGameData'
 
+/**
+ * Test wrapper that provides the GameDataContext
+ */
+function wrapper({ children }: { children: ReactNode }) {
+	return <GameDataProvider>{children}</GameDataProvider>
+}
+
 describe('Game Data Hooks', () => {
 	describe('useGameData', () => {
 		it('should initialize with loading state', () => {
-			const { result } = renderHook(() => useGameData())
+			const { result } = renderHook(() => useGameData(), { wrapper })
 
 			// Initially loading
 			expect(result.current.loading).toBe(true)
@@ -26,7 +35,7 @@ describe('Game Data Hooks', () => {
 		})
 
 		it('should return correct structure', () => {
-			const { result } = renderHook(() => useGameData())
+			const { result } = renderHook(() => useGameData(), { wrapper })
 
 			expect(result.current).toHaveProperty('data')
 			expect(result.current).toHaveProperty('loading')
@@ -36,7 +45,7 @@ describe('Game Data Hooks', () => {
 
 	describe('useItems', () => {
 		it('should initialize with loading state', () => {
-			const { result } = renderHook(() => useItems())
+			const { result } = renderHook(() => useItems(), { wrapper })
 
 			expect(result.current.loading).toBe(true)
 			expect(result.current.error).toBe(null)
@@ -44,7 +53,7 @@ describe('Game Data Hooks', () => {
 		})
 
 		it('should return correct structure', () => {
-			const { result } = renderHook(() => useItems())
+			const { result } = renderHook(() => useItems(), { wrapper })
 
 			expect(result.current).toHaveProperty('data')
 			expect(result.current).toHaveProperty('loading')
@@ -54,7 +63,7 @@ describe('Game Data Hooks', () => {
 
 	describe('useQuests', () => {
 		it('should initialize with loading state', () => {
-			const { result } = renderHook(() => useQuests())
+			const { result } = renderHook(() => useQuests(), { wrapper })
 
 			expect(result.current.loading).toBe(true)
 			expect(result.current.error).toBe(null)
@@ -62,7 +71,7 @@ describe('Game Data Hooks', () => {
 		})
 
 		it('should return correct structure', () => {
-			const { result } = renderHook(() => useQuests())
+			const { result } = renderHook(() => useQuests(), { wrapper })
 
 			expect(result.current).toHaveProperty('data')
 			expect(result.current).toHaveProperty('loading')
@@ -72,7 +81,7 @@ describe('Game Data Hooks', () => {
 
 	describe('useHideoutModules', () => {
 		it('should initialize with loading state', () => {
-			const { result } = renderHook(() => useHideoutModules())
+			const { result } = renderHook(() => useHideoutModules(), { wrapper })
 
 			expect(result.current.loading).toBe(true)
 			expect(result.current.error).toBe(null)
@@ -80,7 +89,7 @@ describe('Game Data Hooks', () => {
 		})
 
 		it('should return correct structure', () => {
-			const { result } = renderHook(() => useHideoutModules())
+			const { result } = renderHook(() => useHideoutModules(), { wrapper })
 
 			expect(result.current).toHaveProperty('data')
 			expect(result.current).toHaveProperty('loading')
@@ -90,7 +99,7 @@ describe('Game Data Hooks', () => {
 
 	describe('useProjects', () => {
 		it('should initialize with loading state', () => {
-			const { result } = renderHook(() => useProjects())
+			const { result } = renderHook(() => useProjects(), { wrapper })
 
 			expect(result.current.loading).toBe(true)
 			expect(result.current.error).toBe(null)
@@ -98,7 +107,7 @@ describe('Game Data Hooks', () => {
 		})
 
 		it('should return correct structure', () => {
-			const { result } = renderHook(() => useProjects())
+			const { result } = renderHook(() => useProjects(), { wrapper })
 
 			expect(result.current).toHaveProperty('data')
 			expect(result.current).toHaveProperty('loading')
@@ -108,7 +117,7 @@ describe('Game Data Hooks', () => {
 
 	describe('useSkillNodes', () => {
 		it('should initialize with loading state', () => {
-			const { result } = renderHook(() => useSkillNodes())
+			const { result } = renderHook(() => useSkillNodes(), { wrapper })
 
 			expect(result.current.loading).toBe(true)
 			expect(result.current.error).toBe(null)
@@ -116,7 +125,7 @@ describe('Game Data Hooks', () => {
 		})
 
 		it('should return correct structure', () => {
-			const { result } = renderHook(() => useSkillNodes())
+			const { result } = renderHook(() => useSkillNodes(), { wrapper })
 
 			expect(result.current).toHaveProperty('data')
 			expect(result.current).toHaveProperty('loading')

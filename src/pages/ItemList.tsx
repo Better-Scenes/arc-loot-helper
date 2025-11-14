@@ -66,9 +66,13 @@ export function ItemList() {
 
 	// Use API's usedIn relationships directly (no need to compute)
 	const usedInRecipes = useMemo(() => {
-		if (!items) return new Map<string, Array<{ itemId: string; itemName: string; quantity: number }>>()
+		if (!items)
+			return new Map<string, Array<{ itemId: string; itemName: string; quantity: number }>>()
 
-		const recipeMap = new Map<string, Array<{ itemId: string; itemName: string; quantity: number }>>()
+		const recipeMap = new Map<
+			string,
+			Array<{ itemId: string; itemName: string; quantity: number }>
+		>()
 
 		// Each item has API's usedIn data embedded
 		for (const item of items) {
@@ -97,7 +101,10 @@ export function ItemList() {
 		// Deduplicate items first
 		const uniqueItems = Array.from(new Map(items.map(item => [item.id, item])).values())
 
-		const recycleMap = new Map<string, Array<{ itemId: string; itemName: string; recycleQty: number }>>()
+		const recycleMap = new Map<
+			string,
+			Array<{ itemId: string; itemName: string; recycleQty: number }>
+		>()
 
 		for (const item of uniqueItems) {
 			// Check recyclesInto
@@ -406,19 +413,6 @@ export function ItemList() {
 
 		return [{ title: 'All Items', items: sortedItems }]
 	}, [sortedItems, filters.groupBy, itemRequirements])
-
-	// Statistics (computed but not currently used in the UI)
-	// const stats = useMemo(() => {
-	// 	const totalItems = items?.length || 0
-	// 	const itemsNeeded = itemRequirements.size
-	// 	const totalQuantity = Array.from(itemRequirements.values()).reduce(
-	// 		(sum, req) => sum + req.total,
-	// 		0
-	// 	)
-	// 	const safeToSalvage = totalItems - itemsNeeded
-
-	// 	return { totalItems, itemsNeeded, totalQuantity, safeToSalvage }
-	// }, [items, itemRequirements])
 
 	// Handlers
 	const handleSearch = useCallback((query: string) => {

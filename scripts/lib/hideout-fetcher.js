@@ -11,11 +11,11 @@ const GITHUB_BASE = 'https://raw.githubusercontent.com/RaidTheory/arcraiders-dat
 const HIDEOUT_MODULES = [
   'scrappy.json',
   'workbench.json',
-  'gunsmith.json',
-  'gear_bench.json',
-  'medical_lab.json',
-  'explosives_station.json',
-  'utility_station.json',
+  'weapon_bench.json',
+  'equipment_bench.json',
+  'med_station.json',
+  'explosives_bench.json',
+  'utility_bench.json',
   'refiner.json',
   'stash.json',
 ];
