@@ -10,6 +10,7 @@ import { dirname, join } from 'path'
 import { fetchPaginated, fetchSingle } from './lib/api-client.js'
 import { validateItems, validateQuests, validateARCs, validateTraders } from './lib/validators.js'
 import { fetchHideoutModules } from './lib/hideout-fetcher.js'
+import { fetchProjects } from './lib/projects-fetcher.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
@@ -38,12 +39,13 @@ async function fetchAPIData() {
 
 	try {
 		// Fetch all data in parallel
-		const [items, quests, arcs, tradersResponse, hideoutModules] = await Promise.all([
+		const [items, quests, arcs, tradersResponse, hideoutModules, projects] = await Promise.all([
 			fetchPaginated('/items', { limit: 100 }, { includeComponents: true }),
 			fetchPaginated('/quests', { limit: 50 }),
 			fetchPaginated('/arcs', { limit: 50 }),
 			fetchSingle('/traders'),
 			fetchHideoutModules(),
+			fetchProjects(),
 		])
 
 		console.log('\n📊 API Data Summary:')
@@ -51,7 +53,8 @@ async function fetchAPIData() {
 		console.log(`   • Quests: ${quests.length}`)
 		console.log(`   • ARCs: ${arcs.length}`)
 		console.log(`   • Traders: ${Object.keys(tradersResponse.data || {}).length} vendors`)
-		console.log(`   • Hideout Modules: ${hideoutModules.length}\n`)
+		console.log(`   • Hideout Modules: ${hideoutModules.length}`)
+		console.log(`   • Projects: ${projects.length}\n`)
 
 		return {
 			items,
@@ -59,6 +62,7 @@ async function fetchAPIData() {
 			arcs,
 			traders: tradersResponse.data || {},
 			hideoutModules,
+			projects,
 		}
 	} catch (error) {
 		console.error('❌ API fetch failed:', error.message)
@@ -202,6 +206,7 @@ function transformData(apiData) {
 		arcs: apiData.arcs,
 		traders: apiData.traders,
 		hideoutModules: apiData.hideoutModules,
+		projects: apiData.projects,
 	}
 }
 
@@ -272,6 +277,7 @@ async function saveData(data) {
 		{ name: 'arcs.json', data: data.arcs },
 		{ name: 'traders.json', data: data.traders },
 		{ name: 'hideoutModules.json', data: data.hideoutModules },
+		{ name: 'projects.json', data: data.projects },
 	]
 
 	for (const { name, data: fileData } of filesToSave) {

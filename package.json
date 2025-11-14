@@ -6,7 +6,8 @@
 	"scripts": {
 		"dev": "vite",
 		"build": "tsc -b && vite build",
-		"prebuild": "npm run fetch-data",
+		"prebuild": "npm run clean && npm run fetch-data",
+		"clean": "node -e \"require('fs').rmSync('public/data', {recursive: true, force: true})\"",
 		"fetch-data": "node scripts/fetch-data.js",
 		"fetch-data:validate": "node scripts/fetch-data.validate.js",
 		"lint": "eslint .",

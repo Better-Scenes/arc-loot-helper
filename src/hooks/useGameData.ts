@@ -5,7 +5,7 @@
 
 import { useContext } from 'react'
 import { GameDataContext } from '../contexts/GameDataContext'
-import type { Item, Quest, HideoutModule, Project, SkillNode, TradersData } from '../data/types'
+import type { Item, Quest, HideoutModule, Project, TradersData } from '../data/types'
 
 /**
  * Hook result structure with loading state and error handling
@@ -24,7 +24,6 @@ export interface GameData {
 	quests: Quest[]
 	hideoutModules: HideoutModule[]
 	projects: Project[]
-	skillNodes: SkillNode[]
 	traders: TradersData
 }
 
@@ -84,18 +83,6 @@ export function useProjects(): UseDataResult<Project[]> {
 	const { data, loading, error } = useGameData()
 	return {
 		data: data?.projects || null,
-		loading,
-		error,
-	}
-}
-
-/**
- * Hook to access skill nodes data from context
- */
-export function useSkillNodes(): UseDataResult<SkillNode[]> {
-	const { data, loading, error } = useGameData()
-	return {
-		data: data?.skillNodes || null,
 		loading,
 		error,
 	}

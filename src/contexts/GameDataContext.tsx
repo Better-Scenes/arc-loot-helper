@@ -5,7 +5,7 @@
 
 import { createContext, useState, useEffect, useMemo } from 'react'
 import type { ReactNode } from 'react'
-import type { Item, Quest, HideoutModule, Project, SkillNode, TradersData } from '../data/types'
+import type { Item, Quest, HideoutModule, Project, TradersData } from '../data/types'
 import { normalizeItems } from '../utils/normalizeGameData'
 
 /**
@@ -16,7 +16,6 @@ export interface GameData {
 	quests: Quest[]
 	hideoutModules: HideoutModule[]
 	projects: Project[]
-	skillNodes: SkillNode[]
 	traders: TradersData
 }
 
@@ -74,13 +73,12 @@ export function GameDataProvider({ children }: GameDataProviderProps) {
 				setError(null)
 
 				// Fetch all data in parallel
-				const [rawItems, quests, hideoutModules, projects, skillNodes, traders] = await Promise.all(
+				const [rawItems, quests, hideoutModules, projects, traders] = await Promise.all(
 					[
 						fetchJson<Item[]>('/data/items.json'),
 						fetchJson<Quest[]>('/data/quests.json'),
 						fetchJson<HideoutModule[]>('/data/hideoutModules.json'),
 						fetchJson<Project[]>('/data/projects.json'),
-						fetchJson<SkillNode[]>('/data/skillNodes.json'),
 						fetchJson<TradersData>('/data/traders.json'),
 					]
 				)
@@ -89,7 +87,7 @@ export function GameDataProvider({ children }: GameDataProviderProps) {
 				const items = normalizeItems(rawItems)
 
 				if (!cancelled) {
-					setData({ items, quests, hideoutModules, projects, skillNodes, traders })
+					setData({ items, quests, hideoutModules, projects, traders })
 					setLoading(false)
 				}
 			} catch (err) {

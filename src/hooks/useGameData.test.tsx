@@ -13,7 +13,6 @@ import {
 	useQuests,
 	useHideoutModules,
 	useProjects,
-	useSkillNodes,
 } from './useGameData'
 
 /**
@@ -108,24 +107,6 @@ describe('Game Data Hooks', () => {
 
 		it('should return correct structure', () => {
 			const { result } = renderHook(() => useProjects(), { wrapper })
-
-			expect(result.current).toHaveProperty('data')
-			expect(result.current).toHaveProperty('loading')
-			expect(result.current).toHaveProperty('error')
-		})
-	})
-
-	describe('useSkillNodes', () => {
-		it('should initialize with loading state', () => {
-			const { result } = renderHook(() => useSkillNodes(), { wrapper })
-
-			expect(result.current.loading).toBe(true)
-			expect(result.current.error).toBe(null)
-			expect(result.current.data).toBe(null)
-		})
-
-		it('should return correct structure', () => {
-			const { result } = renderHook(() => useSkillNodes(), { wrapper })
 
 			expect(result.current).toHaveProperty('data')
 			expect(result.current).toHaveProperty('loading')

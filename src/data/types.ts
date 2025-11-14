@@ -231,7 +231,6 @@ export interface GameData {
 	quests: Quest[]
 	hideoutModules: HideoutModule[]
 	projects: Project[]
-	skillNodes: SkillNode[]
 	arcs?: ARC[]
 	traders?: TradersData
 }
