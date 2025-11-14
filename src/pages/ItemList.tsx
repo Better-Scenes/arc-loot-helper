@@ -3,7 +3,7 @@
  * Shows all items with flexible filtering and grouping controls
  */
 
-import { useState, useMemo, useCallback } from 'react'
+import { useState, useMemo, useCallback, Profiler } from 'react'
 import { Heading } from '../components/heading'
 import { Text } from '../components/text'
 import { SearchBar } from '../components/SearchBar'
@@ -14,6 +14,7 @@ import { ItemListRow, ItemListHeader } from '../components/ItemListRow'
 import { useGameData } from '../hooks/useGameData'
 import { NORMALIZED_TYPE_ORDER } from '../utils/normalizeGameData'
 import type { Item } from '../data/types'
+import { onRenderCallback } from '../utils/profiler'
 
 /**
  * Main ItemList page component
@@ -492,8 +493,9 @@ export function ItemList() {
 						) : filters.displayMode === 'list' ? (
 							<div>
 								<ItemListHeader />
-								<div>
-									{group.items.map(item => {
+								<Profiler id={`list-${group.title}`} onRender={onRenderCallback}>
+									<div>
+										{group.items.map(item => {
 										const req = itemRequirements.get(item.id)
 										const recipes = usedInRecipes.get(item.id)
 										const sources = recycledFrom.get(item.id)
@@ -507,10 +509,12 @@ export function ItemList() {
 											/>
 										)
 									})}
-								</div>
+									</div>
+								</Profiler>
 							</div>
 						) : (
-							<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+							<Profiler id={`grid-${group.title}`} onRender={onRenderCallback}>
+								<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
 								{group.items.map(item => {
 									const req = itemRequirements.get(item.id)
 									const recipes = usedInRecipes.get(item.id)
@@ -528,7 +532,8 @@ export function ItemList() {
 										/>
 									)
 								})}
-							</div>
+								</div>
+							</Profiler>
 						)}
 					</div>
 					)

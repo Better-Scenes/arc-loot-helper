@@ -3,11 +3,12 @@
  * Condensed list view for items - displays key information in a compact row
  */
 
-import { memo } from 'react'
+import { memo, Profiler } from 'react'
 import type { Item } from '../data/types'
 import { ItemIcon } from './ItemIcon'
 import { Badge } from './badge'
 import { calculateValuePerWeight } from '../utils/valueWeightCalculator'
+import { onRenderCallback } from '../utils/profiler'
 
 interface ItemListRowProps {
 	item: Item
@@ -71,7 +72,8 @@ export const ItemListRow = memo(function ItemListRow({ item, requirements, usedI
 	const stackSize = item.stackSize || 1
 
 	return (
-		<div className="grid grid-cols-[48px_minmax(150px,200px)_220px_70px_70px_80px_minmax(250px,1fr)] items-center gap-2 border-b border-l border-r border-white/10 bg-zinc-900 px-3 py-2 transition last:rounded-b hover:border-white/20 hover:bg-zinc-800">
+		<Profiler id={`ItemListRow-${item.id}`} onRender={onRenderCallback}>
+			<div className="grid grid-cols-[48px_minmax(150px,200px)_220px_70px_70px_80px_minmax(250px,1fr)] items-center gap-2 border-b border-l border-r border-white/10 bg-zinc-900 px-3 py-2 transition last:rounded-b hover:border-white/20 hover:bg-zinc-800">
 			{/* Item Icon */}
 			<div className="flex items-center justify-center">
 				<ItemIcon
@@ -186,5 +188,6 @@ export const ItemListRow = memo(function ItemListRow({ item, requirements, usedI
 				)}
 			</div>
 		</div>
+		</Profiler>
 	)
 })

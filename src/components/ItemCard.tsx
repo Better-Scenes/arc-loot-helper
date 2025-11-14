@@ -3,12 +3,13 @@
  * Displays a single item with its properties, rarity, and requirement status
  */
 
-import { useState, memo, useMemo } from 'react'
+import { useState, memo, useMemo, Profiler } from 'react'
 import type { Item } from '../data/types'
 import { Badge } from './badge'
 import { ItemIcon } from './ItemIcon'
 import { ChevronDownIcon, ChevronUpIcon } from '@heroicons/react/16/solid'
 import { calculateValuePerWeight } from '../utils/valueWeightCalculator'
+import { onRenderCallback } from '../utils/profiler'
 
 interface ItemCardProps {
 	item: Item
@@ -130,7 +131,8 @@ export const ItemCard = memo(function ItemCard({
 		(isRequired && requirements)
 
 	return (
-		<div className="group relative overflow-hidden rounded-lg border border-white/10 bg-zinc-900 transition hover:border-white/20 hover:bg-zinc-800">
+		<Profiler id={`ItemCard-${item.id}`} onRender={onRenderCallback}>
+			<div className="group relative overflow-hidden rounded-lg border border-white/10 bg-zinc-900 transition hover:border-white/20 hover:bg-zinc-800">
 			<div className="p-4">
 				{/* CORE INFO - Always Visible */}
 
@@ -392,5 +394,6 @@ export const ItemCard = memo(function ItemCard({
 				)}
 			</div>
 		</div>
+		</Profiler>
 	)
 })
