@@ -28,6 +28,7 @@ export function ItemList() {
 	const quests = gameData?.quests || null
 	const hideoutModules = gameData?.hideoutModules || null
 	const projects = gameData?.projects || null
+	const traders = gameData?.traders || null
 
 	// UI state
 	const [searchQuery, setSearchQuery] = useState('')
@@ -42,6 +43,7 @@ export function ItemList() {
 			ingredient: 'ignore',
 			recyclable: 'ignore',
 			reclaimed: 'ignore',
+			purchased: 'ignore',
 		},
 		rarityFilters: {
 			common: 'ignore',
@@ -140,6 +142,33 @@ export function ItemList() {
 		}
 		return valueMap
 	}, [items])
+
+	// Create trader mappings (itemId -> trader info)
+	const traderMappings = useMemo(() => {
+		if (!traders)
+			return new Map<string, { traderName: string; price: number; currency: 'Seeds' | 'Creds' }>()
+
+		const mappings = new Map<
+			string,
+			{ traderName: string; price: number; currency: 'Seeds' | 'Creds' }
+		>()
+
+		Object.entries(traders).forEach(([traderName, traderItems]) => {
+			traderItems.forEach(traderItem => {
+				// Skip items without a price (some Battery items have null trader_price)
+				if (traderItem.trader_price !== null && traderItem.trader_price !== undefined) {
+					const currency = traderName === 'Celeste' ? 'Seeds' : 'Creds'
+					mappings.set(traderItem.id, {
+						traderName,
+						price: traderItem.trader_price,
+						currency,
+					})
+				}
+			})
+		})
+
+		return mappings
+	}, [traders])
 
 	// Calculate item requirements
 	const itemRequirements = useMemo(() => {
@@ -287,6 +316,7 @@ export function ItemList() {
 			const req = itemRequirements.get(item.id)
 			const recipes = usedInRecipes.get(item.id)
 			const sources = recycledFrom.get(item.id)
+			const trader = traderMappings.get(item.id)
 
 			// Item properties for filtering
 			const itemProps = {
@@ -298,6 +328,7 @@ export function ItemList() {
 				ingredient: !!recipes && recipes.length > 0,
 				recyclable: !!item.recyclesInto && Object.keys(item.recyclesInto).length > 0,
 				reclaimed: !!sources && sources.length > 0,
+				purchased: !!trader,
 			}
 
 			// Apply tri-state filter logic
@@ -319,7 +350,7 @@ export function ItemList() {
 
 			return true
 		})
-	}, [items, searchQuery, filters, itemRequirements, usedInRecipes, recycledFrom])
+	}, [items, searchQuery, filters, itemRequirements, usedInRecipes, recycledFrom, traderMappings])
 
 	// Sort items
 	const sortedItems = useMemo(() => {
@@ -497,6 +528,7 @@ export function ItemList() {
 						itemRequirements={itemRequirements}
 						usedInRecipes={usedInRecipes}
 						recycledFrom={recycledFrom}
+						traderMappings={traderMappings}
 						allItems={items || []}
 						itemValueMap={itemValueMap}
 						showDetails={filters.showDetails}
@@ -548,6 +580,7 @@ export function ItemList() {
 											const req = itemRequirements.get(item.id)
 											const recipes = usedInRecipes.get(item.id)
 											const sources = recycledFrom.get(item.id)
+											const trader = traderMappings.get(item.id)
 											return (
 												<ItemCard
 													key={needsGroupKey ? `${group.title}-${item.id}` : item.id}
@@ -555,6 +588,7 @@ export function ItemList() {
 													requirements={req}
 													usedInRecipes={recipes}
 													recycledFrom={sources}
+													traderInfo={trader}
 													allItems={items || []}
 													itemValueMap={itemValueMap}
 													showDetails={filters.showDetails}

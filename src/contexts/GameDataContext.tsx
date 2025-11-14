@@ -5,7 +5,7 @@
 
 import { createContext, useState, useEffect, useMemo } from 'react'
 import type { ReactNode } from 'react'
-import type { Item, Quest, HideoutModule, Project, SkillNode } from '../data/types'
+import type { Item, Quest, HideoutModule, Project, SkillNode, TradersData } from '../data/types'
 import { normalizeItems } from '../utils/normalizeGameData'
 
 /**
@@ -17,6 +17,7 @@ export interface GameData {
 	hideoutModules: HideoutModule[]
 	projects: Project[]
 	skillNodes: SkillNode[]
+	traders: TradersData
 }
 
 /**
@@ -42,6 +43,7 @@ async function fetchJson<T>(url: string): Promise<T> {
 /**
  * Create the context with default values
  */
+// eslint-disable-next-line react-refresh/only-export-components
 export const GameDataContext = createContext<GameDataContextValue>({
 	data: null,
 	loading: true,
@@ -72,19 +74,22 @@ export function GameDataProvider({ children }: GameDataProviderProps) {
 				setError(null)
 
 				// Fetch all data in parallel
-				const [rawItems, quests, hideoutModules, projects, skillNodes] = await Promise.all([
-					fetchJson<Item[]>('/data/items.json'),
-					fetchJson<Quest[]>('/data/quests.json'),
-					fetchJson<HideoutModule[]>('/data/hideoutModules.json'),
-					fetchJson<Project[]>('/data/projects.json'),
-					fetchJson<SkillNode[]>('/data/skillNodes.json'),
-				])
+				const [rawItems, quests, hideoutModules, projects, skillNodes, traders] = await Promise.all(
+					[
+						fetchJson<Item[]>('/data/items.json'),
+						fetchJson<Quest[]>('/data/quests.json'),
+						fetchJson<HideoutModule[]>('/data/hideoutModules.json'),
+						fetchJson<Project[]>('/data/projects.json'),
+						fetchJson<SkillNode[]>('/data/skillNodes.json'),
+						fetchJson<TradersData>('/data/traders.json'),
+					]
+				)
 
 				// Normalize items to use game's category types
 				const items = normalizeItems(rawItems)
 
 				if (!cancelled) {
-					setData({ items, quests, hideoutModules, projects, skillNodes })
+					setData({ items, quests, hideoutModules, projects, skillNodes, traders })
 					setLoading(false)
 				}
 			} catch (err) {
@@ -104,9 +109,5 @@ export function GameDataProvider({ children }: GameDataProviderProps) {
 
 	const value = useMemo(() => ({ data, loading, error }), [data, loading, error])
 
-	return (
-		<GameDataContext.Provider value={value}>
-			{children}
-		</GameDataContext.Provider>
-	)
+	return <GameDataContext.Provider value={value}>{children}</GameDataContext.Provider>
 }

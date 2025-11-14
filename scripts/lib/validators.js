@@ -9,9 +9,9 @@
  * @throws {Error} If value is null or undefined
  */
 function required(value, fieldName) {
-  if (value === null || value === undefined) {
-    throw new Error(`Missing required field: ${fieldName}`);
-  }
+	if (value === null || value === undefined) {
+		throw new Error(`Missing required field: ${fieldName}`)
+	}
 }
 
 /**
@@ -21,9 +21,9 @@ function required(value, fieldName) {
  * @throws {Error} If value is not a non-empty string
  */
 function nonEmptyString(value, fieldName) {
-  if (typeof value !== 'string' || value.trim() === '') {
-    throw new Error(`${fieldName} must be a non-empty string`);
-  }
+	if (typeof value !== 'string' || value.trim() === '') {
+		throw new Error(`${fieldName} must be a non-empty string`)
+	}
 }
 
 /**
@@ -32,36 +32,36 @@ function nonEmptyString(value, fieldName) {
  * @throws {Error} If item is invalid
  */
 export function validateItem(item) {
-  required(item, 'item');
-  required(item.id, 'item.id');
-  required(item.name, 'item.name');
-  required(item.item_type, 'item.item_type');
+	required(item, 'item')
+	required(item.id, 'item.id')
+	required(item.name, 'item.name')
+	required(item.item_type, 'item.item_type')
 
-  nonEmptyString(item.id, 'item.id');
-  nonEmptyString(item.name, 'item.name');
-  nonEmptyString(item.item_type, 'item.item_type');
+	nonEmptyString(item.id, 'item.id')
+	nonEmptyString(item.name, 'item.name')
+	nonEmptyString(item.item_type, 'item.item_type')
 
-  // Rarity is optional for cosmetic items
-  if (item.rarity !== undefined && item.rarity !== null && item.rarity !== '') {
-    nonEmptyString(item.rarity, 'item.rarity');
-  }
+	// Rarity is optional for cosmetic items
+	if (item.rarity !== undefined && item.rarity !== null && item.rarity !== '') {
+		nonEmptyString(item.rarity, 'item.rarity')
+	}
 
-  // Validate optional arrays if present
-  if (item.components !== undefined && !Array.isArray(item.components)) {
-    throw new Error('item.components must be an array');
-  }
+	// Validate optional arrays if present
+	if (item.components !== undefined && !Array.isArray(item.components)) {
+		throw new Error('item.components must be an array')
+	}
 
-  if (item.used_in !== undefined && !Array.isArray(item.used_in)) {
-    throw new Error('item.used_in must be an array');
-  }
+	if (item.used_in !== undefined && !Array.isArray(item.used_in)) {
+		throw new Error('item.used_in must be an array')
+	}
 
-  if (item.recycle_components !== undefined && !Array.isArray(item.recycle_components)) {
-    throw new Error('item.recycle_components must be an array');
-  }
+	if (item.recycle_components !== undefined && !Array.isArray(item.recycle_components)) {
+		throw new Error('item.recycle_components must be an array')
+	}
 
-  if (item.recycle_from !== undefined && !Array.isArray(item.recycle_from)) {
-    throw new Error('item.recycle_from must be an array');
-  }
+	if (item.recycle_from !== undefined && !Array.isArray(item.recycle_from)) {
+		throw new Error('item.recycle_from must be an array')
+	}
 }
 
 /**
@@ -70,24 +70,24 @@ export function validateItem(item) {
  * @throws {Error} If quest is invalid
  */
 export function validateQuest(quest) {
-  required(quest, 'quest');
-  required(quest.id, 'quest.id');
-  required(quest.name, 'quest.name');
+	required(quest, 'quest')
+	required(quest.id, 'quest.id')
+	required(quest.name, 'quest.name')
 
-  nonEmptyString(quest.id, 'quest.id');
-  nonEmptyString(quest.name, 'quest.name');
+	nonEmptyString(quest.id, 'quest.id')
+	nonEmptyString(quest.name, 'quest.name')
 
-  if (quest.objectives !== undefined && !Array.isArray(quest.objectives)) {
-    throw new Error('quest.objectives must be an array');
-  }
+	if (quest.objectives !== undefined && !Array.isArray(quest.objectives)) {
+		throw new Error('quest.objectives must be an array')
+	}
 
-  if (quest.rewards !== undefined && !Array.isArray(quest.rewards)) {
-    throw new Error('quest.rewards must be an array');
-  }
+	if (quest.rewards !== undefined && !Array.isArray(quest.rewards)) {
+		throw new Error('quest.rewards must be an array')
+	}
 
-  if (quest.required_items !== undefined && !Array.isArray(quest.required_items)) {
-    throw new Error('quest.required_items must be an array');
-  }
+	if (quest.required_items !== undefined && !Array.isArray(quest.required_items)) {
+		throw new Error('quest.required_items must be an array')
+	}
 }
 
 /**
@@ -96,12 +96,12 @@ export function validateQuest(quest) {
  * @throws {Error} If arc is invalid
  */
 export function validateARC(arc) {
-  required(arc, 'arc');
-  required(arc.id, 'arc.id');
-  required(arc.name, 'arc.name');
+	required(arc, 'arc')
+	required(arc.id, 'arc.id')
+	required(arc.name, 'arc.name')
 
-  nonEmptyString(arc.id, 'arc.id');
-  nonEmptyString(arc.name, 'arc.name');
+	nonEmptyString(arc.id, 'arc.id')
+	nonEmptyString(arc.name, 'arc.name')
 }
 
 /**
@@ -110,14 +110,14 @@ export function validateARC(arc) {
  * @throws {Error} If item is invalid
  */
 export function validateTraderItem(item) {
-  required(item, 'traderItem');
-  required(item.id, 'traderItem.id');
-  required(item.name, 'traderItem.name');
-  required(item.rarity, 'traderItem.rarity');
+	required(item, 'traderItem')
+	required(item.id, 'traderItem.id')
+	required(item.name, 'traderItem.name')
+	required(item.rarity, 'traderItem.rarity')
 
-  nonEmptyString(item.id, 'traderItem.id');
-  nonEmptyString(item.name, 'traderItem.name');
-  nonEmptyString(item.rarity, 'traderItem.rarity');
+	nonEmptyString(item.id, 'traderItem.id')
+	nonEmptyString(item.name, 'traderItem.name')
+	nonEmptyString(item.rarity, 'traderItem.rarity')
 }
 
 /**
@@ -128,27 +128,27 @@ export function validateTraderItem(item) {
  * @returns {Object} Validation result {valid: boolean, errors: Array}
  */
 function validateArray(items, validator, typeName) {
-  if (!Array.isArray(items)) {
-    return {
-      valid: false,
-      errors: [`Expected array of ${typeName}, got ${typeof items}`],
-    };
-  }
+	if (!Array.isArray(items)) {
+		return {
+			valid: false,
+			errors: [`Expected array of ${typeName}, got ${typeof items}`],
+		}
+	}
 
-  const errors = [];
+	const errors = []
 
-  items.forEach((item, index) => {
-    try {
-      validator(item);
-    } catch (error) {
-      errors.push(`${typeName}[${index}] (id: ${item?.id || 'unknown'}): ${error.message}`);
-    }
-  });
+	items.forEach((item, index) => {
+		try {
+			validator(item)
+		} catch (error) {
+			errors.push(`${typeName}[${index}] (id: ${item?.id || 'unknown'}): ${error.message}`)
+		}
+	})
 
-  return {
-    valid: errors.length === 0,
-    errors,
-  };
+	return {
+		valid: errors.length === 0,
+		errors,
+	}
 }
 
 /**
@@ -157,7 +157,7 @@ function validateArray(items, validator, typeName) {
  * @returns {Object} Validation result
  */
 export function validateItems(items) {
-  return validateArray(items, validateItem, 'Item');
+	return validateArray(items, validateItem, 'Item')
 }
 
 /**
@@ -166,7 +166,7 @@ export function validateItems(items) {
  * @returns {Object} Validation result
  */
 export function validateQuests(quests) {
-  return validateArray(quests, validateQuest, 'Quest');
+	return validateArray(quests, validateQuest, 'Quest')
 }
 
 /**
@@ -175,7 +175,7 @@ export function validateQuests(quests) {
  * @returns {Object} Validation result
  */
 export function validateARCs(arcs) {
-  return validateArray(arcs, validateARC, 'ARC');
+	return validateArray(arcs, validateARC, 'ARC')
 }
 
 /**
@@ -184,32 +184,32 @@ export function validateARCs(arcs) {
  * @returns {Object} Validation result
  */
 export function validateTraders(traders) {
-  if (typeof traders !== 'object' || traders === null) {
-    return {
-      valid: false,
-      errors: [`Expected traders object, got ${typeof traders}`],
-    };
-  }
+	if (typeof traders !== 'object' || traders === null) {
+		return {
+			valid: false,
+			errors: [`Expected traders object, got ${typeof traders}`],
+		}
+	}
 
-  const errors = [];
+	const errors = []
 
-  Object.entries(traders).forEach(([vendor, items]) => {
-    if (!Array.isArray(items)) {
-      errors.push(`Trader '${vendor}' must have an array of items`);
-      return;
-    }
+	Object.entries(traders).forEach(([vendor, items]) => {
+		if (!Array.isArray(items)) {
+			errors.push(`Trader '${vendor}' must have an array of items`)
+			return
+		}
 
-    items.forEach((item, index) => {
-      try {
-        validateTraderItem(item);
-      } catch (error) {
-        errors.push(`Trader '${vendor}'[${index}] (id: ${item?.id || 'unknown'}): ${error.message}`);
-      }
-    });
-  });
+		items.forEach((item, index) => {
+			try {
+				validateTraderItem(item)
+			} catch (error) {
+				errors.push(`Trader '${vendor}'[${index}] (id: ${item?.id || 'unknown'}): ${error.message}`)
+			}
+		})
+	})
 
-  return {
-    valid: errors.length === 0,
-    errors,
-  };
+	return {
+		valid: errors.length === 0,
+		errors,
+	}
 }

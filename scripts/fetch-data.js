@@ -4,29 +4,29 @@
  * Run with: node scripts/fetch-data.js
  */
 
-import { promises as fs } from 'fs';
-import { fileURLToPath } from 'url';
-import { dirname, join } from 'path';
-import { fetchPaginated, fetchSingle } from './lib/api-client.js';
-import { validateItems, validateQuests, validateARCs, validateTraders } from './lib/validators.js';
-import { fetchHideoutModules } from './lib/hideout-fetcher.js';
+import { promises as fs } from 'fs'
+import { fileURLToPath } from 'url'
+import { dirname, join } from 'path'
+import { fetchPaginated, fetchSingle } from './lib/api-client.js'
+import { validateItems, validateQuests, validateARCs, validateTraders } from './lib/validators.js'
+import { fetchHideoutModules } from './lib/hideout-fetcher.js'
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = dirname(__filename)
 
-const OUTPUT_DIR = join(__dirname, '..', 'public', 'data');
+const OUTPUT_DIR = join(__dirname, '..', 'public', 'data')
 
 /**
  * Ensure directory exists, create if not
  * @param {string} dir - Directory path
  */
 async function ensureDir(dir) {
-  try {
-    await fs.access(dir);
-  } catch {
-    await fs.mkdir(dir, { recursive: true });
-    console.log(`📁 Created directory: ${dir}`);
-  }
+	try {
+		await fs.access(dir)
+	} catch {
+		await fs.mkdir(dir, { recursive: true })
+		console.log(`📁 Created directory: ${dir}`)
+	}
 }
 
 /**
@@ -34,36 +34,36 @@ async function ensureDir(dir) {
  * @returns {Promise<Object>} API data
  */
 async function fetchAPIData() {
-  console.log('🌐 Fetching data from MetaForge API...\n');
+	console.log('🌐 Fetching data from MetaForge API...\n')
 
-  try {
-    // Fetch all data in parallel
-    const [items, quests, arcs, tradersResponse, hideoutModules] = await Promise.all([
-      fetchPaginated('/items', { limit: 100 }, { includeComponents: true }),
-      fetchPaginated('/quests', { limit: 50 }),
-      fetchPaginated('/arcs', { limit: 50 }),
-      fetchSingle('/traders'),
-      fetchHideoutModules(),
-    ]);
+	try {
+		// Fetch all data in parallel
+		const [items, quests, arcs, tradersResponse, hideoutModules] = await Promise.all([
+			fetchPaginated('/items', { limit: 100 }, { includeComponents: true }),
+			fetchPaginated('/quests', { limit: 50 }),
+			fetchPaginated('/arcs', { limit: 50 }),
+			fetchSingle('/traders'),
+			fetchHideoutModules(),
+		])
 
-    console.log('\n📊 API Data Summary:');
-    console.log(`   • Items: ${items.length}`);
-    console.log(`   • Quests: ${quests.length}`);
-    console.log(`   • ARCs: ${arcs.length}`);
-    console.log(`   • Traders: ${Object.keys(tradersResponse.data || {}).length} vendors`);
-    console.log(`   • Hideout Modules: ${hideoutModules.length}\n`);
+		console.log('\n📊 API Data Summary:')
+		console.log(`   • Items: ${items.length}`)
+		console.log(`   • Quests: ${quests.length}`)
+		console.log(`   • ARCs: ${arcs.length}`)
+		console.log(`   • Traders: ${Object.keys(tradersResponse.data || {}).length} vendors`)
+		console.log(`   • Hideout Modules: ${hideoutModules.length}\n`)
 
-    return {
-      items,
-      quests,
-      arcs,
-      traders: tradersResponse.data || {},
-      hideoutModules,
-    };
-  } catch (error) {
-    console.error('❌ API fetch failed:', error.message);
-    throw error;
-  }
+		return {
+			items,
+			quests,
+			arcs,
+			traders: tradersResponse.data || {},
+			hideoutModules,
+		}
+	} catch (error) {
+		console.error('❌ API fetch failed:', error.message)
+		throw error
+	}
 }
 
 /**
@@ -72,56 +72,56 @@ async function fetchAPIData() {
  * @returns {boolean} True if all valid
  */
 function validateData(apiData) {
-  console.log('🔍 Validating data...\n');
+	console.log('🔍 Validating data...\n')
 
-  let allValid = true;
+	let allValid = true
 
-  // Validate items
-  const itemsResult = validateItems(apiData.items);
-  if (!itemsResult.valid) {
-    console.error('❌ Items validation failed:');
-    itemsResult.errors.slice(0, 5).forEach((err) => console.error(`   • ${err}`));
-    if (itemsResult.errors.length > 5) {
-      console.error(`   ... and ${itemsResult.errors.length - 5} more errors`);
-    }
-    allValid = false;
-  } else {
-    console.log(`   ✅ Items: ${apiData.items.length} valid`);
-  }
+	// Validate items
+	const itemsResult = validateItems(apiData.items)
+	if (!itemsResult.valid) {
+		console.error('❌ Items validation failed:')
+		itemsResult.errors.slice(0, 5).forEach(err => console.error(`   • ${err}`))
+		if (itemsResult.errors.length > 5) {
+			console.error(`   ... and ${itemsResult.errors.length - 5} more errors`)
+		}
+		allValid = false
+	} else {
+		console.log(`   ✅ Items: ${apiData.items.length} valid`)
+	}
 
-  // Validate quests
-  const questsResult = validateQuests(apiData.quests);
-  if (!questsResult.valid) {
-    console.error('❌ Quests validation failed:');
-    questsResult.errors.slice(0, 5).forEach((err) => console.error(`   • ${err}`));
-    allValid = false;
-  } else {
-    console.log(`   ✅ Quests: ${apiData.quests.length} valid`);
-  }
+	// Validate quests
+	const questsResult = validateQuests(apiData.quests)
+	if (!questsResult.valid) {
+		console.error('❌ Quests validation failed:')
+		questsResult.errors.slice(0, 5).forEach(err => console.error(`   • ${err}`))
+		allValid = false
+	} else {
+		console.log(`   ✅ Quests: ${apiData.quests.length} valid`)
+	}
 
-  // Validate ARCs
-  const arcsResult = validateARCs(apiData.arcs);
-  if (!arcsResult.valid) {
-    console.error('❌ ARCs validation failed:');
-    arcsResult.errors.slice(0, 5).forEach((err) => console.error(`   • ${err}`));
-    allValid = false;
-  } else {
-    console.log(`   ✅ ARCs: ${apiData.arcs.length} valid`);
-  }
+	// Validate ARCs
+	const arcsResult = validateARCs(apiData.arcs)
+	if (!arcsResult.valid) {
+		console.error('❌ ARCs validation failed:')
+		arcsResult.errors.slice(0, 5).forEach(err => console.error(`   • ${err}`))
+		allValid = false
+	} else {
+		console.log(`   ✅ ARCs: ${apiData.arcs.length} valid`)
+	}
 
-  // Validate traders
-  const tradersResult = validateTraders(apiData.traders);
-  if (!tradersResult.valid) {
-    console.error('❌ Traders validation failed:');
-    tradersResult.errors.slice(0, 5).forEach((err) => console.error(`   • ${err}`));
-    allValid = false;
-  } else {
-    const vendorCount = Object.keys(apiData.traders).length;
-    console.log(`   ✅ Traders: ${vendorCount} vendors valid`);
-  }
+	// Validate traders
+	const tradersResult = validateTraders(apiData.traders)
+	if (!tradersResult.valid) {
+		console.error('❌ Traders validation failed:')
+		tradersResult.errors.slice(0, 5).forEach(err => console.error(`   • ${err}`))
+		allValid = false
+	} else {
+		const vendorCount = Object.keys(apiData.traders).length
+		console.log(`   ✅ Traders: ${vendorCount} vendors valid`)
+	}
 
-  console.log('');
-  return allValid;
+	console.log('')
+	return allValid
 }
 
 /**
@@ -130,79 +130,79 @@ function validateData(apiData) {
  * @returns {Object} Transformed data
  */
 function transformData(apiData) {
-  console.log('🔄 Transforming data to app schema...\n');
+	console.log('🔄 Transforming data to app schema...\n')
 
-  // Transform items: convert API component arrays to our recipe format
-  const items = apiData.items.map((item) => {
-    const transformed = {
-      id: item.id,
-      name: { en: item.name },
-      description: { en: item.description || '' },
-      type: item.item_type,
-      rarity: item.rarity || undefined,
-      value: item.value || 0,
-      weightKg: item.stat_block?.weight || 0,
-      stackSize: item.stat_block?.stackSize || 1,
-      imageFilename: item.icon || '',
+	// Transform items: convert API component arrays to our recipe format
+	const items = apiData.items.map(item => {
+		const transformed = {
+			id: item.id,
+			name: { en: item.name },
+			description: { en: item.description || '' },
+			type: item.item_type,
+			rarity: item.rarity || undefined,
+			value: item.value || 0,
+			weightKg: item.stat_block?.weight || 0,
+			stackSize: item.stat_block?.stackSize || 1,
+			imageFilename: item.icon || '',
 
-      // Convert component arrays to our recipe format {itemId: quantity}
-      recipe: componentsToRecipe(item.components),
-      recyclesInto: componentsToRecipe(item.recycle_components),
+			// Convert component arrays to our recipe format {itemId: quantity}
+			recipe: componentsToRecipe(item.components),
+			recyclesInto: componentsToRecipe(item.recycle_components),
 
-      // Keep API-specific fields
-      workbench: item.workbench,
-      loadout_slots: item.loadout_slots,
-      sources: item.sources,
-      locations: item.locations,
-      loot_area: item.loot_area,
-      stat_block: item.stat_block,
+			// Keep API-specific fields
+			workbench: item.workbench,
+			loadout_slots: item.loadout_slots,
+			sources: item.sources,
+			locations: item.locations,
+			loot_area: item.loot_area,
+			stat_block: item.stat_block,
 
-      // Keep full component relationships
-      usedIn: item.used_in,
-      recycleFrom: item.recycle_from,
-    };
+			// Keep full component relationships
+			usedIn: item.used_in,
+			recycleFrom: item.recycle_from,
+		}
 
-    // Remove undefined values
-    Object.keys(transformed).forEach((key) => {
-      if (transformed[key] === undefined) {
-        delete transformed[key];
-      }
-    });
+		// Remove undefined values
+		Object.keys(transformed).forEach(key => {
+			if (transformed[key] === undefined) {
+				delete transformed[key]
+			}
+		})
 
-    return transformed;
-  });
+		return transformed
+	})
 
-  // Transform quests: convert API rewards to our format
-  const quests = apiData.quests.map((quest) => {
-    const transformed = {
-      id: quest.id,
-      name: { en: quest.name },
-      objectives: Array.isArray(quest.objectives) ? quest.objectives.map((obj) => ({ en: obj })) : [],
-      xp: quest.xp || 0,
-      requiredItemIds: convertQuestRequirements(quest.required_items),
-      rewardItemIds: convertQuestRewards(quest.rewards),
-    };
+	// Transform quests: convert API rewards to our format
+	const quests = apiData.quests.map(quest => {
+		const transformed = {
+			id: quest.id,
+			name: { en: quest.name },
+			objectives: Array.isArray(quest.objectives) ? quest.objectives.map(obj => ({ en: obj })) : [],
+			xp: quest.xp || 0,
+			requiredItemIds: convertQuestRequirements(quest.required_items),
+			rewardItemIds: convertQuestRewards(quest.rewards),
+		}
 
-    // Remove undefined values
-    Object.keys(transformed).forEach((key) => {
-      if (transformed[key] === undefined) {
-        delete transformed[key];
-      }
-    });
+		// Remove undefined values
+		Object.keys(transformed).forEach(key => {
+			if (transformed[key] === undefined) {
+				delete transformed[key]
+			}
+		})
 
-    return transformed;
-  });
+		return transformed
+	})
 
-  console.log(`   • Transformed ${items.length} items`);
-  console.log(`   • Transformed ${quests.length} quests\n`);
+	console.log(`   • Transformed ${items.length} items`)
+	console.log(`   • Transformed ${quests.length} quests\n`)
 
-  return {
-    items,
-    quests,
-    arcs: apiData.arcs,
-    traders: apiData.traders,
-    hideoutModules: apiData.hideoutModules,
-  };
+	return {
+		items,
+		quests,
+		arcs: apiData.arcs,
+		traders: apiData.traders,
+		hideoutModules: apiData.hideoutModules,
+	}
 }
 
 /**
@@ -211,18 +211,18 @@ function transformData(apiData) {
  * @returns {Object|undefined} Recipe object {itemId: quantity}
  */
 function componentsToRecipe(components) {
-  if (!Array.isArray(components) || components.length === 0) {
-    return undefined;
-  }
+	if (!Array.isArray(components) || components.length === 0) {
+		return undefined
+	}
 
-  const recipe = {};
-  components.forEach((comp) => {
-    if (comp.component && comp.component.id) {
-      recipe[comp.component.id] = comp.quantity || 1;
-    }
-  });
+	const recipe = {}
+	components.forEach(comp => {
+		if (comp.component && comp.component.id) {
+			recipe[comp.component.id] = comp.quantity || 1
+		}
+	})
 
-  return Object.keys(recipe).length > 0 ? recipe : undefined;
+	return Object.keys(recipe).length > 0 ? recipe : undefined
 }
 
 /**
@@ -231,14 +231,14 @@ function componentsToRecipe(components) {
  * @returns {Array} Our format [{itemId, quantity}]
  */
 function convertQuestRewards(rewards) {
-  if (!Array.isArray(rewards) || rewards.length === 0) {
-    return [];
-  }
+	if (!Array.isArray(rewards) || rewards.length === 0) {
+		return []
+	}
 
-  return rewards.map((reward) => ({
-    itemId: reward.item?.id || reward.item_id,
-    quantity: parseInt(reward.quantity) || 1,
-  }));
+	return rewards.map(reward => ({
+		itemId: reward.item?.id || reward.item_id,
+		quantity: parseInt(reward.quantity) || 1,
+	}))
 }
 
 /**
@@ -247,14 +247,14 @@ function convertQuestRewards(rewards) {
  * @returns {Array} Our format [{itemId, quantity}]
  */
 function convertQuestRequirements(requiredItems) {
-  if (!Array.isArray(requiredItems) || requiredItems.length === 0) {
-    return [];
-  }
+	if (!Array.isArray(requiredItems) || requiredItems.length === 0) {
+		return []
+	}
 
-  return requiredItems.map((req) => ({
-    itemId: req.item?.id || req.item_id || req.id,
-    quantity: parseInt(req.quantity) || 1,
-  }));
+	return requiredItems.map(req => ({
+		itemId: req.item?.id || req.item_id || req.id,
+		quantity: parseInt(req.quantity) || 1,
+	}))
 }
 
 /**
@@ -262,70 +262,70 @@ function convertQuestRequirements(requiredItems) {
  * @param {Object} data - Transformed data
  */
 async function saveData(data) {
-  console.log('💾 Saving data files...\n');
+	console.log('💾 Saving data files...\n')
 
-  await ensureDir(OUTPUT_DIR);
+	await ensureDir(OUTPUT_DIR)
 
-  const filesToSave = [
-    { name: 'items.json', data: data.items },
-    { name: 'quests.json', data: data.quests },
-    { name: 'arcs.json', data: data.arcs },
-    { name: 'traders.json', data: data.traders },
-    { name: 'hideoutModules.json', data: data.hideoutModules },
-  ];
+	const filesToSave = [
+		{ name: 'items.json', data: data.items },
+		{ name: 'quests.json', data: data.quests },
+		{ name: 'arcs.json', data: data.arcs },
+		{ name: 'traders.json', data: data.traders },
+		{ name: 'hideoutModules.json', data: data.hideoutModules },
+	]
 
-  for (const { name, data: fileData } of filesToSave) {
-    const outputPath = join(OUTPUT_DIR, name);
-    const content = JSON.stringify(fileData, null, 2);
-    await fs.writeFile(outputPath, content, 'utf-8');
+	for (const { name, data: fileData } of filesToSave) {
+		const outputPath = join(OUTPUT_DIR, name)
+		const content = JSON.stringify(fileData, null, 2)
+		await fs.writeFile(outputPath, content, 'utf-8')
 
-    const itemCount = Array.isArray(fileData) ? fileData.length : Object.keys(fileData).length;
-    const sizeKB = (content.length / 1024).toFixed(1);
-    console.log(`   ✅ ${name} (${sizeKB}KB, ${itemCount} items)`);
-  }
+		const itemCount = Array.isArray(fileData) ? fileData.length : Object.keys(fileData).length
+		const sizeKB = (content.length / 1024).toFixed(1)
+		console.log(`   ✅ ${name} (${sizeKB}KB, ${itemCount} items)`)
+	}
 
-  console.log('');
+	console.log('')
 }
 
 /**
  * Main fetch function
  */
 async function fetchData() {
-  console.log('🚀 ARC Raiders Data Fetcher (API-Only)\n');
-  console.log('─'.repeat(50));
-  console.log('');
+	console.log('🚀 ARC Raiders Data Fetcher (API-Only)\n')
+	console.log('─'.repeat(50))
+	console.log('')
 
-  const startTime = Date.now();
+	const startTime = Date.now()
 
-  try {
-    // Fetch from API
-    const apiData = await fetchAPIData();
+	try {
+		// Fetch from API
+		const apiData = await fetchAPIData()
 
-    // Validate
-    const isValid = validateData(apiData);
-    if (!isValid) {
-      throw new Error('Data validation failed');
-    }
+		// Validate
+		const isValid = validateData(apiData)
+		if (!isValid) {
+			throw new Error('Data validation failed')
+		}
 
-    // Transform to our schema
-    const transformedData = transformData(apiData);
+		// Transform to our schema
+		const transformedData = transformData(apiData)
 
-    // Save
-    await saveData(transformedData);
+		// Save
+		await saveData(transformedData)
 
-    // Success!
-    const duration = ((Date.now() - startTime) / 1000).toFixed(1);
-    console.log('─'.repeat(50));
-    console.log(`\n🎉 Data fetch complete in ${duration}s!`);
-    console.log(`   📁 Output: ${OUTPUT_DIR}\n`);
-  } catch (error) {
-    console.error('\n💥 Fatal error:', error.message);
-    console.error('');
-    process.exit(1);
-  }
+		// Success!
+		const duration = ((Date.now() - startTime) / 1000).toFixed(1)
+		console.log('─'.repeat(50))
+		console.log(`\n🎉 Data fetch complete in ${duration}s!`)
+		console.log(`   📁 Output: ${OUTPUT_DIR}\n`)
+	} catch (error) {
+		console.error('\n💥 Fatal error:', error.message)
+		console.error('')
+		process.exit(1)
+	}
 }
 
 // Run the fetch
-fetchData();
+fetchData()
 
-export { fetchData };
+export { fetchData }

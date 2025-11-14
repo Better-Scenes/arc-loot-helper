@@ -61,7 +61,13 @@ function getRarityColor(
 	return 'zinc'
 }
 
-export const ItemListRow = memo(function ItemListRow({ item, requirements, usedInRecipes, recycledFrom, isLastInGroup }: ItemListRowProps) {
+export const ItemListRow = memo(function ItemListRow({
+	item,
+	requirements,
+	usedInRecipes,
+	recycledFrom,
+	isLastInGroup,
+}: ItemListRowProps) {
 	const rarityColor = getRarityColor(item.rarity)
 	const isNotRequired = !requirements
 	const isRequired = !!requirements
@@ -74,121 +80,123 @@ export const ItemListRow = memo(function ItemListRow({ item, requirements, usedI
 
 	return (
 		<Profiler id={`ItemListRow-${item.id}`} onRender={onRenderCallback}>
-			<div className={`grid grid-cols-[48px_minmax(150px,200px)_220px_70px_70px_80px_minmax(250px,1fr)] items-center gap-2 border-b border-l border-r border-white/10 bg-zinc-900 px-3 py-2 transition hover:border-white/20 hover:bg-zinc-800 ${isLastInGroup ? 'rounded-b' : ''}`}>
-			{/* Item Icon */}
-			<div className="flex items-center justify-center">
-				<ItemIcon
-					imageUrl={item.imageFilename}
-					itemName={item.name.en}
-					rarity={item.rarity}
-					size="xs"
-				/>
-			</div>
+			<div
+				className={`grid grid-cols-[48px_minmax(150px,200px)_220px_70px_70px_80px_minmax(250px,1fr)] items-center gap-2 border-b border-l border-r border-white/10 bg-zinc-900 px-3 py-2 transition hover:border-white/20 hover:bg-zinc-800 ${isLastInGroup ? 'rounded-b' : ''}`}
+			>
+				{/* Item Icon */}
+				<div className="flex items-center justify-center">
+					<ItemIcon
+						imageUrl={item.imageFilename}
+						itemName={item.name.en}
+						rarity={item.rarity}
+						size="xs"
+					/>
+				</div>
 
-			{/* Item Name */}
-			<div className="min-w-0">
-				<h3 className="truncate text-xs font-medium text-white">{item.name.en}</h3>
-			</div>
+				{/* Item Name */}
+				<div className="min-w-0">
+					<h3 className="truncate text-xs font-medium text-white">{item.name.en}</h3>
+				</div>
 
-			{/* Rarity & Category (in same column, separate badges) */}
-			<div className="flex items-center gap-1">
-				<Badge color={rarityColor} className="text-[10px] px-1.5 py-0.5">
-					{item.rarity || 'Unknown'}
-				</Badge>
-				<Badge color="zinc" className="text-[10px] px-1.5 py-0.5">
-					{item.category || 'Misc'}
-				</Badge>
-			</div>
+				{/* Rarity & Category (in same column, separate badges) */}
+				<div className="flex items-center gap-1">
+					<Badge color={rarityColor} className="text-[10px] px-1.5 py-0.5">
+						{item.rarity || 'Unknown'}
+					</Badge>
+					<Badge color="zinc" className="text-[10px] px-1.5 py-0.5">
+						{item.category || 'Misc'}
+					</Badge>
+				</div>
 
-			{/* Value */}
-			<div className="text-right">
-				<div className="text-xs font-medium text-emerald-400">
-					{item.value?.toLocaleString() || '0'}
+				{/* Value */}
+				<div className="text-right">
+					<div className="text-xs font-medium text-emerald-400">
+						{item.value?.toLocaleString() || '0'}
+					</div>
+				</div>
+
+				{/* $/kg */}
+				<div className="text-right">
+					<div className="text-xs font-medium text-emerald-400">
+						{(() => {
+							const valuePerWeight = calculateValuePerWeight(item)
+							if (valuePerWeight === Infinity) return '∞'
+							if (valuePerWeight === 0) return '0'
+							return Math.round(valuePerWeight).toLocaleString()
+						})()}
+					</div>
+				</div>
+
+				{/* $/Stack */}
+				<div className="text-right">
+					<div className="text-xs font-medium text-emerald-400">
+						{item.value ? (item.value * stackSize).toLocaleString() : '0'}
+					</div>
+				</div>
+
+				{/* Status Badges */}
+				<div className="flex flex-wrap items-center gap-1">
+					{isRequired && (
+						<Badge
+							color="blue"
+							className="text-[10px] px-1.5 py-0.5"
+							title={`Required: ${requirements.quests > 0 ? `${requirements.quests} for quests` : ''}${requirements.quests > 0 && (requirements.hideout > 0 || requirements.projects > 0) ? ', ' : ''}${requirements.hideout > 0 ? `${requirements.hideout} for hideout` : ''}${requirements.hideout > 0 && requirements.projects > 0 ? ', ' : ''}${requirements.projects > 0 ? `${requirements.projects} for projects` : ''} (Total: ×${requirements.total})`}
+						>
+							Required
+						</Badge>
+					)}
+
+					{isNotRequired && (
+						<Badge
+							color="green"
+							className="text-[10px] px-1.5 py-0.5"
+							title="This item is not required for any quests, hideout upgrades, or projects"
+						>
+							Not Required
+						</Badge>
+					)}
+
+					{isIngredient && (
+						<Badge
+							color="purple"
+							className="text-[10px] px-1.5 py-0.5"
+							title="This item is used as an ingredient in crafting recipes"
+						>
+							Ingredient
+						</Badge>
+					)}
+
+					{isCraftable && (
+						<Badge
+							color="sky"
+							className="text-[10px] px-1.5 py-0.5"
+							title="This item can be crafted from other items"
+						>
+							Craftable
+						</Badge>
+					)}
+
+					{isReclaimed && (
+						<Badge
+							color="lime"
+							className="text-[10px] px-1.5 py-0.5"
+							title="This item can be obtained by recycling or salvaging other items"
+						>
+							Reclaimed
+						</Badge>
+					)}
+
+					{isRecyclable && (
+						<Badge
+							color="lime"
+							className="text-[10px] px-1.5 py-0.5"
+							title="This item can be recycled or salvaged into materials"
+						>
+							Recyclable
+						</Badge>
+					)}
 				</div>
 			</div>
-
-			{/* $/kg */}
-			<div className="text-right">
-				<div className="text-xs font-medium text-emerald-400">
-					{(() => {
-						const valuePerWeight = calculateValuePerWeight(item)
-						if (valuePerWeight === Infinity) return '∞'
-						if (valuePerWeight === 0) return '0'
-						return Math.round(valuePerWeight).toLocaleString()
-					})()}
-				</div>
-			</div>
-
-			{/* $/Stack */}
-			<div className="text-right">
-				<div className="text-xs font-medium text-emerald-400">
-					{item.value ? (item.value * stackSize).toLocaleString() : '0'}
-				</div>
-			</div>
-
-			{/* Status Badges */}
-			<div className="flex flex-wrap items-center gap-1">
-				{isRequired && (
-					<Badge
-						color="blue"
-						className="text-[10px] px-1.5 py-0.5"
-						title={`Required: ${requirements.quests > 0 ? `${requirements.quests} for quests` : ''}${requirements.quests > 0 && (requirements.hideout > 0 || requirements.projects > 0) ? ', ' : ''}${requirements.hideout > 0 ? `${requirements.hideout} for hideout` : ''}${requirements.hideout > 0 && requirements.projects > 0 ? ', ' : ''}${requirements.projects > 0 ? `${requirements.projects} for projects` : ''} (Total: ×${requirements.total})`}
-					>
-						Required
-					</Badge>
-				)}
-
-				{isNotRequired && (
-					<Badge
-						color="green"
-						className="text-[10px] px-1.5 py-0.5"
-						title="This item is not required for any quests, hideout upgrades, or projects"
-					>
-						Not Required
-					</Badge>
-				)}
-
-				{isIngredient && (
-					<Badge
-						color="purple"
-						className="text-[10px] px-1.5 py-0.5"
-						title="This item is used as an ingredient in crafting recipes"
-					>
-						Ingredient
-					</Badge>
-				)}
-
-				{isCraftable && (
-					<Badge
-						color="sky"
-						className="text-[10px] px-1.5 py-0.5"
-						title="This item can be crafted from other items"
-					>
-						Craftable
-					</Badge>
-				)}
-
-				{isReclaimed && (
-					<Badge
-						color="lime"
-						className="text-[10px] px-1.5 py-0.5"
-						title="This item can be obtained by recycling or salvaging other items"
-					>
-						Reclaimed
-					</Badge>
-				)}
-
-				{isRecyclable && (
-					<Badge
-						color="lime"
-						className="text-[10px] px-1.5 py-0.5"
-						title="This item can be recycled or salvaged into materials"
-					>
-						Recyclable
-					</Badge>
-				)}
-			</div>
-		</div>
 		</Profiler>
 	)
 })

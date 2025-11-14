@@ -15,10 +15,7 @@ export interface RecycleValueResult {
  * @param allItems - All items (to look up component values)
  * @returns Recycle value information
  */
-export function calculateSalvageValue(
-	item: Item,
-	allItems: Item[]
-): RecycleValueResult | null {
+export function calculateSalvageValue(item: Item, allItems: Item[]): RecycleValueResult | null {
 	// If item can't be recycled, return null
 	if (!item.recyclesInto) {
 		return null

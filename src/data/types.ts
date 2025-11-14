@@ -102,6 +102,13 @@ export interface Item {
 	// Component relationships (from API with includeComponents=true)
 	usedIn?: ComponentRelationship[]
 	recycleFrom?: ComponentRelationship[]
+
+	// Trader information (processed from traders data)
+	traderInfo?: {
+		traderName: string
+		price: number
+		currency: 'Seeds' | 'Creds'
+	}
 }
 
 /**
@@ -212,6 +219,11 @@ export interface TraderItem {
 }
 
 /**
+ * Trader data structure - Maps trader names to their inventory
+ */
+export type TradersData = Record<string, TraderItem[]>
+
+/**
  * GameData - Container for all game data
  */
 export interface GameData {
@@ -221,7 +233,7 @@ export interface GameData {
 	projects: Project[]
 	skillNodes: SkillNode[]
 	arcs?: ARC[]
-	traders?: Record<string, TraderItem[]>
+	traders?: TradersData
 }
 
 /**

@@ -20,7 +20,9 @@ export const onRenderCallback: ProfilerOnRenderCallback = (
 	phase,
 	actualDuration,
 	baseDuration,
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	_startTime,
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	_commitTime
 ) => {
 	if (!ENABLE_PROFILING) return

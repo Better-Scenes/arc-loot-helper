@@ -22,6 +22,8 @@ export interface MetaFilters {
 	ingredient: FilterMode
 	recyclable: FilterMode
 	reclaimed: FilterMode
+	// Trading
+	purchased: FilterMode
 }
 
 export interface RarityFilters {

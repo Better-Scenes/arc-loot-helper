@@ -37,6 +37,7 @@ const metaFilterOptions = {
 		{ key: 'ingredient' as const, label: 'Ingredient' },
 		{ key: 'recyclable' as const, label: 'Recyclable' },
 		{ key: 'reclaimed' as const, label: 'Reclaimed' },
+		{ key: 'purchased' as const, label: 'Purchased' },
 	],
 }
 
@@ -155,6 +156,7 @@ export function ItemToolbar({
 				ingredient: 'ignore',
 				recyclable: 'ignore',
 				reclaimed: 'ignore',
+				purchased: 'ignore',
 			},
 			rarityFilters: {
 				common: 'ignore',

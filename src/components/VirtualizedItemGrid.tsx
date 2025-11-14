@@ -37,6 +37,7 @@ interface VirtualizedItemGridProps {
 			recycleQty: number
 		}>
 	>
+	traderMappings: Map<string, { traderName: string; price: number; currency: 'Seeds' | 'Creds' }>
 	allItems: Item[]
 	itemValueMap: Map<string, number>
 	showDetails: boolean
@@ -52,6 +53,7 @@ export function VirtualizedItemGrid({
 	itemRequirements,
 	usedInRecipes,
 	recycledFrom,
+	traderMappings,
 	allItems,
 	itemValueMap,
 	showDetails,
@@ -121,12 +123,15 @@ export function VirtualizedItemGrid({
 						const marginTop = parseFloat(style.marginTop)
 						const marginBottom = parseFloat(style.marginBottom)
 						return height + marginTop + marginBottom
-				  }
+					}
 				: undefined,
 	})
 
+	// Create a key based on the data to force virtualizer reset when filtering/sorting
+	const virtualizerKey = `${groups.length}-${virtualRows.length}`
+
 	return (
-		<div ref={parentRef}>
+		<div ref={parentRef} key={virtualizerKey}>
 			<div
 				style={{
 					height: `${rowVirtualizer.getTotalSize()}px`,
@@ -161,9 +166,11 @@ export function VirtualizedItemGrid({
 					}
 
 					// Render item row (grid of cards)
+					// Use content-based key to force remeasure when items change
+					const rowKey = `${row.groupTitle}-${row.items.map(i => i.id).join('-')}`
 					return (
 						<div
-							key={`row-${virtualRow.index}`}
+							key={rowKey}
 							data-index={virtualRow.index}
 							ref={rowVirtualizer.measureElement}
 							style={{
@@ -179,6 +186,7 @@ export function VirtualizedItemGrid({
 								const req = itemRequirements.get(item.id)
 								const recipes = usedInRecipes.get(item.id)
 								const sources = recycledFrom.get(item.id)
+								const trader = traderMappings.get(item.id)
 								const key = needsGroupKey ? `${row.groupTitle}-${item.id}` : item.id
 
 								return (
@@ -188,6 +196,7 @@ export function VirtualizedItemGrid({
 										requirements={req}
 										usedInRecipes={recipes}
 										recycledFrom={sources}
+										traderInfo={trader}
 										allItems={allItems}
 										itemValueMap={itemValueMap}
 										showDetails={showDetails}

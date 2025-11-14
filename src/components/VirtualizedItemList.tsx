@@ -97,12 +97,15 @@ export function VirtualizedItemList({
 						const marginTop = parseFloat(style.marginTop)
 						const marginBottom = parseFloat(style.marginBottom)
 						return height + marginTop + marginBottom
-				  }
+					}
 				: undefined,
 	})
 
+	// Create a key based on the data to force virtualizer reset when filtering/sorting
+	const virtualizerKey = `${groups.length}-${virtualRows.length}`
+
 	return (
-		<div ref={parentRef}>
+		<div ref={parentRef} key={virtualizerKey}>
 			<div
 				style={{
 					height: `${rowVirtualizer.getTotalSize()}px`,
@@ -139,9 +142,14 @@ export function VirtualizedItemList({
 					}
 
 					if (row.type === 'tableHeader') {
+						// Find the group this table header belongs to (previous row should be a header)
+						const prevRow = virtualRows[virtualRow.index - 1]
+						const groupTitle = prevRow && prevRow.type === 'header'
+							? prevRow.groupTitle
+							: 'unknown'
 						return (
 							<div
-								key={`table-header-${virtualRow.index}`}
+								key={`table-header-${groupTitle}`}
 								data-index={virtualRow.index}
 								ref={rowVirtualizer.measureElement}
 								style={{
