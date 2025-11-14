@@ -127,6 +127,17 @@ export function ItemList() {
 		return recycleMap
 	}, [items])
 
+	// Create a shared item value lookup map (used by salvage calculations)
+	const itemValueMap = useMemo(() => {
+		if (!items) return new Map<string, number>()
+
+		const valueMap = new Map<string, number>()
+		for (const item of items) {
+			valueMap.set(item.id, item.value || 0)
+		}
+		return valueMap
+	}, [items])
+
 	// Calculate item requirements
 	const itemRequirements = useMemo(() => {
 		if (!quests || !hideoutModules || !projects) return new Map()
@@ -512,6 +523,7 @@ export function ItemList() {
 											usedInRecipes={recipes}
 											recycledFrom={sources}
 											allItems={items || []}
+											itemValueMap={itemValueMap}
 											showDetails={filters.showDetails}
 										/>
 									)

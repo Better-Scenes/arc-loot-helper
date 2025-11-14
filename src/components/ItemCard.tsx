@@ -3,12 +3,11 @@
  * Displays a single item with its properties, rarity, and requirement status
  */
 
-import { useState, memo } from 'react'
+import { useState, memo, useMemo } from 'react'
 import type { Item } from '../data/types'
 import { Badge } from './badge'
 import { ItemIcon } from './ItemIcon'
 import { ChevronDownIcon, ChevronUpIcon } from '@heroicons/react/16/solid'
-import { calculateSalvageValue, getSalvageEfficiency } from '../utils/salvageValue'
 import { calculateValuePerWeight } from '../utils/valueWeightCalculator'
 
 interface ItemCardProps {
@@ -27,6 +26,7 @@ interface ItemCardProps {
 		recycleQty: number
 	}>
 	allItems: Item[]
+	itemValueMap: Map<string, number>
 	showDetails?: boolean
 }
 
@@ -55,6 +55,7 @@ export const ItemCard = memo(function ItemCard({
 	usedInRecipes,
 	recycledFrom,
 	allItems,
+	itemValueMap,
 	showDetails = false,
 }: ItemCardProps) {
 	const [isExpanded, setIsExpanded] = useState(false)
@@ -67,9 +68,34 @@ export const ItemCard = memo(function ItemCard({
 	const isRecyclable = item.recyclesInto && Object.keys(item.recyclesInto).length > 0
 	const stackSize = item.stackSize || 1
 
-	// Calculate salvage value
-	const salvageInfo = calculateSalvageValue(item, allItems)
-	const salvageEfficiency = getSalvageEfficiency(item, salvageInfo)
+	// Calculate salvage value (memoized to avoid recalculation on every render)
+	const salvageInfo = useMemo(() => {
+		if (!item.recyclesInto) return null
+
+		let recycleValue = 0
+		const recycleBreakdown: Array<{ itemId: string; quantity: number; value: number; total: number }> = []
+
+		for (const [componentId, quantity] of Object.entries(item.recyclesInto)) {
+			const componentValue = itemValueMap.get(componentId) || 0
+			const total = componentValue * quantity
+			recycleValue += total
+			recycleBreakdown.push({
+				itemId: componentId,
+				quantity,
+				value: componentValue,
+				total,
+			})
+		}
+
+		return { recycleValue, recycleBreakdown }
+	}, [item.recyclesInto, itemValueMap])
+
+	const salvageEfficiency = useMemo(() => {
+		if (!salvageInfo || !item.value || item.value === 0) {
+			return null
+		}
+		return (salvageInfo.recycleValue / item.value) * 100
+	}, [salvageInfo, item.value])
 
 	// Show details if either globally enabled OR locally expanded
 	const shouldShowDetails = showDetails || isExpanded
