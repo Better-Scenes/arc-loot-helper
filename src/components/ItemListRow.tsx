@@ -3,6 +3,7 @@
  * Condensed list view for items - displays key information in a compact row
  */
 
+import { memo } from 'react'
 import type { Item } from '../data/types'
 import { ItemIcon } from './ItemIcon'
 import { Badge } from './badge'
@@ -58,7 +59,7 @@ function getRarityColor(
 	return 'zinc'
 }
 
-export function ItemListRow({ item, requirements, usedInRecipes, recycledFrom }: ItemListRowProps) {
+export const ItemListRow = memo(function ItemListRow({ item, requirements, usedInRecipes, recycledFrom }: ItemListRowProps) {
 	const rarityColor = getRarityColor(item.rarity)
 	const isNotRequired = !requirements
 	const isRequired = !!requirements
@@ -186,4 +187,4 @@ export function ItemListRow({ item, requirements, usedInRecipes, recycledFrom }:
 			</div>
 		</div>
 	)
-}
+})

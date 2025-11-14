@@ -3,7 +3,7 @@
  * Displays a single item with its properties, rarity, and requirement status
  */
 
-import { useState } from 'react'
+import { useState, memo } from 'react'
 import type { Item } from '../data/types'
 import { Badge } from './badge'
 import { ItemIcon } from './ItemIcon'
@@ -49,7 +49,7 @@ function getRarityColor(
 /**
  * ItemCard displays item information in a card layout
  */
-export function ItemCard({
+export const ItemCard = memo(function ItemCard({
 	item,
 	requirements,
 	usedInRecipes,
@@ -367,4 +367,4 @@ export function ItemCard({
 			</div>
 		</div>
 	)
-}
+})
