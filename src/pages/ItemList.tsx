@@ -11,6 +11,8 @@ import { ItemToolbar } from '../components/ItemToolbar'
 import { type FilterState } from '../components/FilterControls'
 import { ItemCard } from '../components/ItemCard'
 import { ItemListRow, ItemListHeader } from '../components/ItemListRow'
+import { VirtualizedItemGrid } from '../components/VirtualizedItemGrid'
+import { VirtualizedItemList } from '../components/VirtualizedItemList'
 import { useGameData } from '../hooks/useGameData'
 import { NORMALIZED_TYPE_ORDER } from '../utils/normalizeGameData'
 import type { Item } from '../data/types'
@@ -456,6 +458,12 @@ export function ItemList() {
 		)
 	}
 
+	// Use group-specific keys only for 'requirement' grouping (where items can appear in multiple groups)
+	const needsGroupKey = filters.groupBy === 'requirement'
+
+	// Use virtualization for better performance with many items
+	const shouldVirtualize = filteredItems.length > 50
+
 	return (
 		<div>
 			{/* Search and Toolbar */}
@@ -472,73 +480,92 @@ export function ItemList() {
 				/>
 			</div>
 
-			{/* Item Groups */}
-			<div className="space-y-8">
-				{groupedItems.map(group => {
-					// Use group-specific keys only for 'requirement' grouping (where items can appear in multiple groups)
-					// Otherwise use stable item.id keys to prevent unnecessary remounts on grouping changes
-					const needsGroupKey = filters.groupBy === 'requirement'
+			{/* Item Groups - Virtualized or Standard */}
+			{shouldVirtualize ? (
+				// Virtualized rendering for large lists
+				filters.displayMode === 'list' ? (
+					<VirtualizedItemList
+						groups={groupedItems}
+						itemRequirements={itemRequirements}
+						usedInRecipes={usedInRecipes}
+						recycledFrom={recycledFrom}
+						needsGroupKey={needsGroupKey}
+					/>
+				) : (
+					<VirtualizedItemGrid
+						groups={groupedItems}
+						itemRequirements={itemRequirements}
+						usedInRecipes={usedInRecipes}
+						recycledFrom={recycledFrom}
+						allItems={items || []}
+						itemValueMap={itemValueMap}
+						showDetails={filters.showDetails}
+						needsGroupKey={needsGroupKey}
+					/>
+				)
+			) : (
+				// Standard rendering for small lists
+				<div className="space-y-8">
+					{groupedItems.map(group => (
+						<div key={group.title}>
+							<Heading level={2} className="mb-4">
+								{group.title}
+								<Text className="ml-2 inline text-zinc-500">({group.items.length})</Text>
+							</Heading>
 
-					return (
-					<div key={group.title}>
-						<Heading level={2} className="mb-4">
-							{group.title}
-							<Text className="ml-2 inline text-zinc-500">({group.items.length})</Text>
-						</Heading>
-
-						{group.items.length === 0 ? (
-							<div className="rounded-lg border border-white/10 bg-zinc-900 p-6">
-								<Text className="text-center text-zinc-500">No items match your filters</Text>
-							</div>
-						) : filters.displayMode === 'list' ? (
-							<div>
-								<ItemListHeader />
-								<Profiler id={`list-${group.title}`} onRender={onRenderCallback}>
-									<div>
+							{group.items.length === 0 ? (
+								<div className="rounded-lg border border-white/10 bg-zinc-900 p-6">
+									<Text className="text-center text-zinc-500">No items match your filters</Text>
+								</div>
+							) : filters.displayMode === 'list' ? (
+								<div>
+									<ItemListHeader />
+									<Profiler id={`list-${group.title}`} onRender={onRenderCallback}>
+										<div>
+											{group.items.map(item => {
+												const req = itemRequirements.get(item.id)
+												const recipes = usedInRecipes.get(item.id)
+												const sources = recycledFrom.get(item.id)
+												return (
+													<ItemListRow
+														key={needsGroupKey ? `${group.title}-${item.id}` : item.id}
+														item={item}
+														requirements={req}
+														usedInRecipes={recipes}
+														recycledFrom={sources}
+													/>
+												)
+											})}
+										</div>
+									</Profiler>
+								</div>
+							) : (
+								<Profiler id={`grid-${group.title}`} onRender={onRenderCallback}>
+									<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
 										{group.items.map(item => {
-										const req = itemRequirements.get(item.id)
-										const recipes = usedInRecipes.get(item.id)
-										const sources = recycledFrom.get(item.id)
-										return (
-											<ItemListRow
-												key={needsGroupKey ? `${group.title}-${item.id}` : item.id}
-												item={item}
-												requirements={req}
-												usedInRecipes={recipes}
-												recycledFrom={sources}
-											/>
-										)
-									})}
+											const req = itemRequirements.get(item.id)
+											const recipes = usedInRecipes.get(item.id)
+											const sources = recycledFrom.get(item.id)
+											return (
+												<ItemCard
+													key={needsGroupKey ? `${group.title}-${item.id}` : item.id}
+													item={item}
+													requirements={req}
+													usedInRecipes={recipes}
+													recycledFrom={sources}
+													allItems={items || []}
+													itemValueMap={itemValueMap}
+													showDetails={filters.showDetails}
+												/>
+											)
+										})}
 									</div>
 								</Profiler>
-							</div>
-						) : (
-							<Profiler id={`grid-${group.title}`} onRender={onRenderCallback}>
-								<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-								{group.items.map(item => {
-									const req = itemRequirements.get(item.id)
-									const recipes = usedInRecipes.get(item.id)
-									const sources = recycledFrom.get(item.id)
-									return (
-										<ItemCard
-											key={needsGroupKey ? `${group.title}-${item.id}` : item.id}
-											item={item}
-											requirements={req}
-											usedInRecipes={recipes}
-											recycledFrom={sources}
-											allItems={items || []}
-											itemValueMap={itemValueMap}
-											showDetails={filters.showDetails}
-										/>
-									)
-								})}
-								</div>
-							</Profiler>
-						)}
-					</div>
-					)
-				})}
-			</div>
+							)}
+						</div>
+					))}
+				</div>
+			)}
 		</div>
 	)
 }
