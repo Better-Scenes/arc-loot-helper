@@ -462,7 +462,12 @@ export function ItemList() {
 
 			{/* Item Groups */}
 			<div className="space-y-8">
-				{groupedItems.map(group => (
+				{groupedItems.map(group => {
+					// Use group-specific keys only for 'requirement' grouping (where items can appear in multiple groups)
+					// Otherwise use stable item.id keys to prevent unnecessary remounts on grouping changes
+					const needsGroupKey = filters.groupBy === 'requirement'
+
+					return (
 					<div key={group.title}>
 						<Heading level={2} className="mb-4">
 							{group.title}
@@ -483,7 +488,7 @@ export function ItemList() {
 										const sources = recycledFrom.get(item.id)
 										return (
 											<ItemListRow
-												key={`${group.title}-${item.id}`}
+												key={needsGroupKey ? `${group.title}-${item.id}` : item.id}
 												item={item}
 												requirements={req}
 												usedInRecipes={recipes}
@@ -501,7 +506,7 @@ export function ItemList() {
 									const sources = recycledFrom.get(item.id)
 									return (
 										<ItemCard
-											key={`${group.title}-${item.id}`}
+											key={needsGroupKey ? `${group.title}-${item.id}` : item.id}
 											item={item}
 											requirements={req}
 											usedInRecipes={recipes}
@@ -514,7 +519,8 @@ export function ItemList() {
 							</div>
 						)}
 					</div>
-				))}
+					)
+				})}
 			</div>
 		</div>
 	)
