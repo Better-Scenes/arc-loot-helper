@@ -25,7 +25,7 @@ export function DropdownMenu({
 	return (
 		<Headless.MenuItems
 			{...props}
-			transition
+			unmount={false}
 			anchor={anchor}
 			className={clsx(
 				className,
@@ -43,8 +43,8 @@ export function DropdownMenu({
 				'shadow-lg ring-1 ring-zinc-950/10 dark:ring-white/10 dark:ring-inset',
 				// Define grid at the menu level if subgrid is supported
 				'supports-[grid-template-columns:subgrid]:grid supports-[grid-template-columns:subgrid]:grid-cols-[auto_1fr_1.5rem_0.5rem_auto]',
-				// Transitions
-				'transition data-leave:duration-100 data-leave:ease-in data-closed:data-leave:opacity-0'
+				// Hide when closed (no transitions for performance)
+				'data-[closed]:hidden'
 			)}
 		/>
 	)

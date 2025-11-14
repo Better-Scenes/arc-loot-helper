@@ -3,7 +3,7 @@
  * Provides all game data through React Context to avoid duplicate fetches
  */
 
-import { createContext, useState, useEffect } from 'react'
+import { createContext, useState, useEffect, useMemo } from 'react'
 import type { ReactNode } from 'react'
 import type { Item, Quest, HideoutModule, Project, SkillNode } from '../data/types'
 import { normalizeItems } from '../utils/normalizeGameData'
@@ -102,8 +102,10 @@ export function GameDataProvider({ children }: GameDataProviderProps) {
 		}
 	}, [])
 
+	const value = useMemo(() => ({ data, loading, error }), [data, loading, error])
+
 	return (
-		<GameDataContext.Provider value={{ data, loading, error }}>
+		<GameDataContext.Provider value={value}>
 			{children}
 		</GameDataContext.Provider>
 	)
