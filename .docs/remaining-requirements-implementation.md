@@ -5,11 +5,11 @@
 - **DRY**: Reuse existing `itemRequirements.ts` utilities where possible
 - **TDD**: Red → Green → Refactor cycle for every feature
 
-## Status: 🔄 IN PROGRESS - Phase 1 Complete ✅
+## Status: 🔄 IN PROGRESS - Phase 2 Complete ✅
 
 **Target Features:**
 1. ✅ Calculate completed requirements from progress
-2. ⏳ Subtract completed from total to get remaining
+2. ✅ Subtract completed from total to get remaining
 3. ⏳ Derived Zustand store for centralized calculation
 4. ⏳ Sync hook to bridge GameDataContext + progressStore
 5. ⏳ Fine-grained selectors for performance
@@ -71,6 +71,67 @@ Total: 77 tests passing (including 27 progressStore tests)
 - **Lines removed**: ~15 lines (duplicate key functions in progressStore)
 - **Net impact**: +55 lines with improved DRY architecture
 - **Complexity**: O(N) where N = total items across all sources (optimal)
+
+---
+
+### Phase 2: Subtract Utilities - Calculate Remaining ✅
+**Start Time:** 09:43:34
+**End Time:** 09:44:04
+**Actual Duration:** 30s (Est: 5m) ✅ **10× faster than estimate!**
+**Tests Added:** 5 tests (4 unit + 1 integration, all passing)
+**Files Modified:** 2 (test file + itemRequirements.ts)
+
+#### What Worked Well:
+- ✅ **Simple logic**: Subtraction function was straightforward to implement
+- ✅ **TDD efficiency**: Tests passed immediately after implementation
+- ✅ **Integration test**: End-to-end validation confirmed all three functions work together
+- ✅ **Edge case handling**: Math.max(0, ...) naturally handles negative values
+
+#### Learnings:
+1. **Speed factor**: Implementation was 10× faster than estimated (30s vs 5m)
+   - Pure function with clear inputs/outputs = fast implementation
+   - Test cases covered all edge scenarios upfront
+   - No need for complex logic or state management
+
+2. **Test coverage completeness**: All edge cases handled in 4 tests:
+   - Normal subtraction (remaining items)
+   - Zero/negative handling (items fully completed or over-completed)
+   - Empty completed (no progress made)
+   - Empty total (edge case, returns empty)
+
+3. **Integration test value**: End-to-end test validates full workflow:
+   - calculateItemRequirements (total)
+   - calculateCompletedRequirements (what's done)
+   - calculateRemainingRequirements (what's left)
+   - Confirms composition of three functions works correctly
+
+4. **Math.max benefit**: Single line handles edge cases elegantly
+   - `Math.max(0, total - completed)` prevents negative quantities
+   - Cleaner than if/else branches
+   - Self-documenting intent
+
+#### Deviations from Plan:
+- ✅ No deviations - followed plan exactly
+- ✅ Integration test included in same commit (not separate step)
+
+#### Test Results:
+```
+✓ src/utils/__tests__/itemRequirements.test.ts (10 tests) 6ms
+  ✓ should subtract completed from total requirements
+  ✓ should not include items with 0 or negative remaining
+  ✓ should handle empty completed requirements
+  ✓ should handle empty total requirements
+  ✓ should calculate remaining requirements end-to-end (integration)
+
+Total: 24 tests passing (5 from Phase 1 + 5 from Phase 2 + 14 existing)
+```
+
+#### Code Quality Metrics:
+- **Lines added**: ~30 lines (function + 5 tests)
+- **Lines removed**: 0
+- **Net impact**: +30 lines
+- **Complexity**: O(N) where N = number of unique items in total (optimal)
+- **Function size**: 13 lines (very concise)
 
 ---
 

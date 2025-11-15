@@ -1,6 +1,10 @@
 import { describe, it, expect } from 'vitest'
-import { calculateCompletedRequirements } from '../itemRequirements'
-import type { GameProgress, Quest, HideoutModule, Project } from '../../data/types'
+import {
+	calculateCompletedRequirements,
+	calculateRemainingRequirements,
+	calculateItemRequirements,
+} from '../itemRequirements'
+import type { GameProgress, Quest, HideoutModule, Project, ItemRequirements } from '../../data/types'
 
 describe('itemRequirements - Completed Calculations', () => {
 	const mockProgress: GameProgress = {
@@ -165,5 +169,107 @@ describe('itemRequirements - Project Completion', () => {
 
 		expect(completed['metal-parts']).toBe(150)
 		expect(completed['spring']).toBeUndefined() // Phase 2 not completed
+	})
+})
+
+describe('itemRequirements - Remaining Calculations', () => {
+	it('should subtract completed from total requirements', () => {
+		const total: ItemRequirements = {
+			'metal-parts': 100,
+			spring: 50,
+			lemon: 10,
+		}
+
+		const completed: ItemRequirements = {
+			'metal-parts': 40,
+			spring: 10,
+		}
+
+		const remaining = calculateRemainingRequirements(total, completed)
+
+		expect(remaining['metal-parts']).toBe(60)
+		expect(remaining['spring']).toBe(40)
+		expect(remaining['lemon']).toBe(10) // Not in completed
+	})
+
+	it('should not include items with 0 or negative remaining', () => {
+		const total: ItemRequirements = {
+			'metal-parts': 50,
+			spring: 20,
+		}
+
+		const completed: ItemRequirements = {
+			'metal-parts': 50, // Exactly completed
+			spring: 30, // Over-completed (shouldn't happen, but handle gracefully)
+		}
+
+		const remaining = calculateRemainingRequirements(total, completed)
+
+		expect(remaining['metal-parts']).toBeUndefined() // 0 remaining
+		expect(remaining['spring']).toBeUndefined() // Negative clamped to 0, not included
+	})
+
+	it('should handle empty completed requirements', () => {
+		const total: ItemRequirements = {
+			'metal-parts': 100,
+		}
+
+		const remaining = calculateRemainingRequirements(total, {})
+
+		expect(remaining['metal-parts']).toBe(100)
+	})
+
+	it('should handle empty total requirements', () => {
+		const completed: ItemRequirements = {
+			'metal-parts': 50,
+		}
+
+		const remaining = calculateRemainingRequirements({}, completed)
+
+		expect(Object.keys(remaining)).toHaveLength(0)
+	})
+})
+
+describe('itemRequirements - Integration', () => {
+	it('should calculate remaining requirements end-to-end', () => {
+		const progress: GameProgress = {
+			quests: {
+				'quest-001': { questId: 'quest-001', completed: true, completedAt: '2025-01-01' },
+			},
+			hideout: {},
+			projects: {},
+			version: 1,
+		}
+
+		const quests: Quest[] = [
+			{
+				id: 'quest-001',
+				trader: 'Trader1',
+				name: { en: 'Quest 1 (completed)' },
+				objectives: [{ en: 'Do thing' }],
+				xp: 100,
+				requiredItemIds: [{ itemId: 'metal-parts', quantity: 50 }],
+			},
+			{
+				id: 'quest-002',
+				trader: 'Trader1',
+				name: { en: 'Quest 2 (incomplete)' },
+				objectives: [{ en: 'Do thing' }],
+				xp: 100,
+				requiredItemIds: [{ itemId: 'metal-parts', quantity: 100 }],
+			},
+		]
+
+		// Calculate total
+		const total = calculateItemRequirements(quests, [], [])
+		expect(total['metal-parts']).toBe(150)
+
+		// Calculate completed
+		const completed = calculateCompletedRequirements(progress, quests, [], [])
+		expect(completed['metal-parts']).toBe(50)
+
+		// Calculate remaining
+		const remaining = calculateRemainingRequirements(total, completed)
+		expect(remaining['metal-parts']).toBe(100) // 150 - 50 = 100
 	})
 })

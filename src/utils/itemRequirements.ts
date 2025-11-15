@@ -166,3 +166,30 @@ export function calculateCompletedRequirements(
 
 	return completed
 }
+
+/**
+ * Calculates remaining requirements by subtracting completed from total.
+ * Only includes items with positive remaining quantities.
+ *
+ * @param total - Total item requirements
+ * @param completed - Completed item requirements
+ * @returns Map of itemId -> remaining quantity (only positive values)
+ */
+export function calculateRemainingRequirements(
+	total: ItemRequirements,
+	completed: ItemRequirements
+): ItemRequirements {
+	const remaining: ItemRequirements = {}
+
+	for (const [itemId, totalQuantity] of Object.entries(total)) {
+		const completedQuantity = completed[itemId] || 0
+		const remainingQuantity = Math.max(0, totalQuantity - completedQuantity)
+
+		// Only include items with positive remaining
+		if (remainingQuantity > 0) {
+			remaining[itemId] = remainingQuantity
+		}
+	}
+
+	return remaining
+}
