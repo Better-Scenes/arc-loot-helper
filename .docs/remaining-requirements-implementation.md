@@ -5,12 +5,12 @@
 - **DRY**: Reuse existing `itemRequirements.ts` utilities where possible
 - **TDD**: Red → Green → Refactor cycle for every feature
 
-## Status: 🔄 IN PROGRESS - Phase 2 Complete ✅
+## Status: 🔄 IN PROGRESS - Phase 3 Complete ✅
 
 **Target Features:**
 1. ✅ Calculate completed requirements from progress
 2. ✅ Subtract completed from total to get remaining
-3. ⏳ Derived Zustand store for centralized calculation
+3. ✅ Derived Zustand store for centralized calculation
 4. ⏳ Sync hook to bridge GameDataContext + progressStore
 5. ⏳ Fine-grained selectors for performance
 
@@ -132,6 +132,80 @@ Total: 24 tests passing (5 from Phase 1 + 5 from Phase 2 + 14 existing)
 - **Net impact**: +30 lines
 - **Complexity**: O(N) where N = number of unique items in total (optimal)
 - **Function size**: 13 lines (very concise)
+
+---
+
+### Phase 3: Derived Zustand Store ✅
+**Start Time:** 09:48:40
+**End Time:** 09:50:18
+**Actual Duration:** 1m 38s (Est: 10m) ✅ **6× faster than estimate!**
+**Tests Added:** 8 tests (3 initialization + 3 calculation + 2 selector, all passing)
+**Files Created:** 2 (store + test file)
+
+#### What Worked Well:
+- ✅ **Pattern reuse**: Store followed exact same structure as progressStore
+- ✅ **Utility composition**: calculate() method simply chains our Phase 1+2 functions
+- ✅ **TDD flow**: Multiple RED → GREEN cycles all passed first try
+- ✅ **Selector simplicity**: getQuantityNeeded() is one line with optional chaining
+
+#### Learnings:
+1. **Speed factor**: Implementation was 6× faster than estimated (1.6m vs 10m)
+   - Zustand store pattern already established (progressStore)
+   - Utility functions already tested (Phase 1+2)
+   - Store just orchestrates existing functions
+
+2. **Composition benefits**: calculate() method is clean delegation:
+   - Step 1: calculateItemRequirements (total)
+   - Step 2: calculateCompletedRequirements (done)
+   - Step 3: calculateRemainingRequirements (remaining)
+   - Each step already tested → high confidence
+
+3. **Test structure**: 3 describe blocks for clear organization:
+   - Initialization tests (store structure)
+   - Calculation tests (core logic)
+   - Selector tests (query methods)
+
+4. **Zustand advantages confirmed**:
+   - Simple create() function
+   - set/get methods handle state updates
+   - No boilerplate needed
+   - TypeScript inference works perfectly
+
+#### Deviations from Plan:
+- ✅ No deviations - followed plan exactly
+- ✅ Selectors tested as part of same commit (not separate)
+
+#### Test Results:
+```
+✓ src/stores/__tests__/remainingRequirementsStore.test.ts (8 tests) 4ms
+  Initialization:
+    ✓ should initialize with null remaining
+    ✓ should have calculate method
+    ✓ should have getQuantityNeeded selector
+  Calculation:
+    ✓ should calculate remaining requirements
+    ✓ should return null when gameData is null
+    ✓ should handle no completed progress
+  Selectors:
+    ✓ should return quantity needed for specific item
+    ✓ should return 0 when remaining is null
+
+Total: 90 tests passing (8 new + 82 existing)
+```
+
+#### Code Quality Metrics:
+- **Lines added**: ~50 lines (store + 8 tests)
+- **Store implementation**: 48 lines (very concise)
+- **Complexity**: O(N) where N = items (delegates to utils)
+- **Dependencies**: Only imports our Phase 1+2 utilities
+- **Interface**: 3 methods (remaining, calculate, getQuantityNeeded)
+
+#### Architecture Validation:
+The store successfully demonstrates the derived state pattern:
+- **Input:** GameData (Context) + GameProgress (Zustand)
+- **Process:** Orchestrate utility functions
+- **Output:** ItemRequirements (derived state)
+- **Benefit:** Single calculation shared by all consumers
 
 ---
 
