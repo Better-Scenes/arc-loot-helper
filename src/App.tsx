@@ -5,8 +5,12 @@
 
 import { ItemList } from './pages/ItemList'
 import { Footer } from './components/Footer'
+import { useSyncRemainingRequirements } from './hooks/useSyncRemainingRequirements'
 
 function App() {
+	// Sync remaining requirements whenever game data or progress changes
+	useSyncRemainingRequirements()
+
 	return (
 		<div className="min-h-screen bg-zinc-950">
 			{/* Simple header - compact */}
