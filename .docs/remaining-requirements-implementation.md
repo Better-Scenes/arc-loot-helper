@@ -5,14 +5,72 @@
 - **DRY**: Reuse existing `itemRequirements.ts` utilities where possible
 - **TDD**: Red → Green → Refactor cycle for every feature
 
-## Status: 🔄 PENDING
+## Status: 🔄 IN PROGRESS - Phase 1 Complete ✅
 
 **Target Features:**
-1. Calculate completed requirements from progress
-2. Subtract completed from total to get remaining
-3. Derived Zustand store for centralized calculation
-4. Sync hook to bridge GameDataContext + progressStore
-5. Fine-grained selectors for performance
+1. ✅ Calculate completed requirements from progress
+2. ⏳ Subtract completed from total to get remaining
+3. ⏳ Derived Zustand store for centralized calculation
+4. ⏳ Sync hook to bridge GameDataContext + progressStore
+5. ⏳ Fine-grained selectors for performance
+
+---
+
+## Implementation Journal
+
+### Phase 1: Extend Utils - Calculate Completed Requirements ✅
+**Start Time:** 09:35:45
+**End Time:** 09:37:26
+**Actual Duration:** 1m 41s (Est: 8m) ✅ **5× faster than estimate!**
+**Tests Added:** 5 tests (all passing)
+**Files Created:** 2 (test file + progressKeys helper)
+**Files Modified:** 2 (itemRequirements.ts + progressStore.ts)
+
+#### What Worked Well:
+- ✅ **Pattern reuse**: Existing aggregate functions provided perfect template
+- ✅ **TDD flow**: RED → GREEN → REFACTOR worked flawlessly
+- ✅ **Test setup**: Reused type definitions made test writing fast
+- ✅ **Composite keys**: Identifying duplication early saved refactor time
+
+#### Learnings:
+1. **Speed factor**: Implementation was 5× faster than estimated (1.7min vs 8min)
+   - Existing patterns in codebase accelerated development significantly
+   - TDD prevented debugging time - all tests passed first try after implementation
+
+2. **DRY win**: Extracting `progressKeys.ts` eliminated duplication between:
+   - `progressStore.ts` (removed 2 duplicate functions)
+   - `itemRequirements.ts` (using shared helpers)
+   - Future-proof: Any new progress tracking will use same keys
+
+3. **Test coverage insight**: All 5 tests passed immediately after implementation
+   - No edge cases discovered (good test planning)
+   - `requirementItemIds` optional field handled naturally with optional chaining
+
+4. **TypeScript benefits**: Type imports made test data creation straightforward
+   - Mock objects validated at compile time
+   - No runtime type errors
+
+#### Deviations from Plan:
+- ✅ No deviations - followed plan exactly
+- ✅ Refactor was faster than expected (progressKeys extraction took <1min)
+
+#### Test Results:
+```
+✓ src/utils/__tests__/itemRequirements.test.ts (5 tests) 4ms
+  ✓ should calculate requirements for completed quests only
+  ✓ should return empty object when no quests completed
+  ✓ should handle quests without required items
+  ✓ should calculate completed hideout level requirements
+  ✓ should calculate completed project phase requirements
+
+Total: 77 tests passing (including 27 progressStore tests)
+```
+
+#### Code Quality Metrics:
+- **Lines added**: ~70 lines (function + tests + helper module)
+- **Lines removed**: ~15 lines (duplicate key functions in progressStore)
+- **Net impact**: +55 lines with improved DRY architecture
+- **Complexity**: O(N) where N = total items across all sources (optimal)
 
 ---
 

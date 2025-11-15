@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
 import type { GameProgress, QuestProgress } from '../data/types'
+import { getHideoutKey, getProjectKey } from '../utils/progressKeys'
 
 interface ProgressStore {
 	progress: GameProgress
@@ -38,24 +39,10 @@ const isValidHideoutLevel = (moduleId: string, level: number): boolean => {
 }
 
 /**
- * Creates a composite key for hideout levels
- */
-const getHideoutKey = (moduleId: string, level: number): string => {
-	return `${moduleId}-${level}`
-}
-
-/**
  * Validates project phase inputs
  */
 const isValidProjectPhase = (projectId: string, phase: number): boolean => {
 	return typeof projectId === 'string' && projectId.length > 0 && typeof phase === 'number' && phase > 0
-}
-
-/**
- * Creates a composite key for project phases
- */
-const getProjectKey = (projectId: string, phase: number): string => {
-	return `${projectId}-${phase}`
 }
 
 /**
