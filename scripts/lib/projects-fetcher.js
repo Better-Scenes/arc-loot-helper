@@ -90,10 +90,11 @@ function transformProjectIds(project) {
 			// Transform regular phases with requirementItemIds
 			return {
 				...phase,
-				requirementItemIds: phase.requirementItemIds?.map(req => ({
-					...req,
-					itemId: transformItemId(req.itemId),
-				})) || [],
+				requirementItemIds:
+					phase.requirementItemIds?.map(req => ({
+						...req,
+						itemId: transformItemId(req.itemId),
+					})) || [],
 			}
 		}),
 	}

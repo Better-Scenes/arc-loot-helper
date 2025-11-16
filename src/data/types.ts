@@ -251,3 +251,46 @@ export interface ItemWithRequirements extends Item {
 	priority: ItemPriority
 	valuePerWeight: number
 }
+
+// ============================================================================
+// Progress Tracking Types
+// ============================================================================
+
+/**
+ * Quest completion tracking
+ */
+export interface QuestProgress {
+	questId: string
+	completed: boolean
+	completedAt: string | null
+}
+
+/**
+ * Hideout module level completion tracking
+ */
+export interface HideoutProgress {
+	moduleId: string
+	level: number
+	completed: boolean
+	completedAt: string | null
+}
+
+/**
+ * Project phase completion tracking
+ */
+export interface ProjectProgress {
+	projectId: string
+	phase: number
+	completed: boolean
+	completedAt: string | null
+}
+
+/**
+ * Game progress state - persisted to localStorage
+ */
+export interface GameProgress {
+	quests: Record<string, QuestProgress>
+	hideout: Record<string, HideoutProgress>
+	projects: Record<string, ProjectProgress>
+	version: number
+}

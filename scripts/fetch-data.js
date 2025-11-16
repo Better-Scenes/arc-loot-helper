@@ -11,6 +11,7 @@ import { fetchPaginated, fetchSingle } from './lib/api-client.js'
 import { validateItems, validateQuests, validateARCs, validateTraders } from './lib/validators.js'
 import { fetchHideoutModules } from './lib/hideout-fetcher.js'
 import { fetchProjects } from './lib/projects-fetcher.js'
+import { fetchQuestChains } from './lib/quest-fetcher.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
@@ -39,18 +40,21 @@ async function fetchAPIData() {
 
 	try {
 		// Fetch all data in parallel
-		const [items, quests, arcs, tradersResponse, hideoutModules, projects] = await Promise.all([
-			fetchPaginated('/items', { limit: 100 }, { includeComponents: true }),
-			fetchPaginated('/quests', { limit: 50 }),
-			fetchPaginated('/arcs', { limit: 50 }),
-			fetchSingle('/traders'),
-			fetchHideoutModules(),
-			fetchProjects(),
-		])
+		const [items, quests, arcs, tradersResponse, hideoutModules, projects, questChains] =
+			await Promise.all([
+				fetchPaginated('/items', { limit: 100 }, { includeComponents: true }),
+				fetchPaginated('/quests', { limit: 50 }),
+				fetchPaginated('/arcs', { limit: 50 }),
+				fetchSingle('/traders'),
+				fetchHideoutModules(),
+				fetchProjects(),
+				fetchQuestChains(),
+			])
 
 		console.log('\n📊 API Data Summary:')
 		console.log(`   • Items: ${items.length}`)
 		console.log(`   • Quests: ${quests.length}`)
+		console.log(`   • Quest Chains: ${questChains.length}`)
 		console.log(`   • ARCs: ${arcs.length}`)
 		console.log(`   • Traders: ${Object.keys(tradersResponse.data || {}).length} vendors`)
 		console.log(`   • Hideout Modules: ${hideoutModules.length}`)
@@ -59,6 +63,7 @@ async function fetchAPIData() {
 		return {
 			items,
 			quests,
+			questChains,
 			arcs,
 			traders: tradersResponse.data || {},
 			hideoutModules,
@@ -176,26 +181,61 @@ function transformData(apiData) {
 		return transformed
 	})
 
-	// Transform quests: convert API rewards to our format
-	const quests = apiData.quests.map(quest => {
-		const transformed = {
-			id: quest.id,
-			name: { en: quest.name },
-			objectives: Array.isArray(quest.objectives) ? quest.objectives.map(obj => ({ en: obj })) : [],
-			xp: quest.xp || 0,
-			requiredItemIds: convertQuestRequirements(quest.required_items),
-			rewardItemIds: convertQuestRewards(quest.rewards),
-		}
+	// Normalize quest name for matching (lowercase, remove punctuation)
+	const normalizeQuestName = name => {
+		return name
+			.toLowerCase()
+			.replace(/[^a-z0-9\s]/g, '')
+			.replace(/\s+/g, ' ')
+			.trim()
+	}
 
-		// Remove undefined values
-		Object.keys(transformed).forEach(key => {
-			if (transformed[key] === undefined) {
-				delete transformed[key]
+	// Transform quests: merge API data with GitHub chain data
+	// Match by quest name since API IDs don't always match GitHub name-based IDs
+	// Use normalized names for matching to handle case/punctuation differences
+	const questChainByNormalizedName = new Map(
+		apiData.questChains.map(chain => [normalizeQuestName(chain.nameEn), chain])
+	)
+
+	// Create a map of normalized quest name to API ID for resolving quest chain references
+	const normalizedNameToId = new Map(apiData.quests.map(q => [normalizeQuestName(q.name), q.id]))
+
+	const quests = apiData.quests
+		// Filter out quests marked for deletion
+		.filter(quest => !quest.name.includes('- delete'))
+		.map(quest => {
+			const chainData = questChainByNormalizedName.get(normalizeQuestName(quest.name))
+
+			const transformed = {
+				id: quest.id,
+				name: { en: quest.name },
+				objectives: Array.isArray(quest.objectives)
+					? quest.objectives.map(obj => ({ en: obj }))
+					: [],
+				xp: quest.xp || 0,
+				requiredItemIds: convertQuestRequirements(quest.required_items),
+				rewardItemIds: convertQuestRewards(quest.rewards),
+				// Add chain data from GitHub
+				trader: chainData?.trader,
+				// Convert quest names in previousQuestIds back to API IDs (using normalized names)
+				previousQuestIds: chainData?.previousQuestIds?.map(
+					name => normalizedNameToId.get(normalizeQuestName(name)) || name
+				),
+				nextQuestIds: chainData?.nextQuestIds?.map(
+					name => normalizedNameToId.get(normalizeQuestName(name)) || name
+				),
+				updatedAt: chainData?.updatedAt,
 			}
-		})
 
-		return transformed
-	})
+			// Remove undefined values
+			Object.keys(transformed).forEach(key => {
+				if (transformed[key] === undefined) {
+					delete transformed[key]
+				}
+			})
+
+			return transformed
+		})
 
 	console.log(`   • Transformed ${items.length} items`)
 	console.log(`   • Transformed ${quests.length} quests\n`)

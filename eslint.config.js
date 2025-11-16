@@ -27,6 +27,14 @@ export default defineConfig([
 		},
 		rules: {
 			'prettier/prettier': 'warn',
+			'@typescript-eslint/no-unused-vars': [
+				'error',
+				{
+					argsIgnorePattern: '^_',
+					varsIgnorePattern: '^_',
+					destructuredArrayIgnorePattern: '^_',
+				},
+			],
 		},
 	},
 	// Node.js scripts configuration

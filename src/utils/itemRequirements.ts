@@ -3,7 +3,8 @@
  * Calculates total item requirements across quests, hideout modules, and projects
  */
 
-import type { Quest, HideoutModule, Project, ItemRequirements } from '../data/types'
+import type { Quest, HideoutModule, Project, ItemRequirements, GameProgress } from '../data/types'
+import { getHideoutKey, getProjectKey } from './progressKeys'
 
 /**
  * Aggregate item requirements from quest data
@@ -104,4 +105,91 @@ export function calculateItemRequirements(
 	addRequirements(projectReqs)
 
 	return totalRequirements
+}
+
+/**
+ * Calculates item requirements for completed quests, hideout levels, and project phases.
+ * Only counts requirements for items marked as completed in progress.
+ *
+ * @param progress - User's completion progress
+ * @param quests - All available quests
+ * @param hideoutModules - All hideout modules
+ * @param projects - All projects
+ * @returns Map of itemId -> quantity for completed requirements
+ */
+export function calculateCompletedRequirements(
+	progress: GameProgress,
+	quests: Quest[],
+	hideoutModules: HideoutModule[],
+	projects: Project[]
+): ItemRequirements {
+	const completed: ItemRequirements = {}
+
+	// Aggregate completed quest requirements
+	for (const quest of quests) {
+		// Skip if quest not completed
+		if (!progress.quests[quest.id]?.completed) continue
+		if (!quest.requiredItemIds) continue
+
+		for (const entry of quest.requiredItemIds) {
+			completed[entry.itemId] = (completed[entry.itemId] || 0) + entry.quantity
+		}
+	}
+
+	// Aggregate completed hideout level requirements
+	for (const module of hideoutModules) {
+		for (const level of module.levels) {
+			// Check if this specific level is completed
+			const key = getHideoutKey(module.id, level.level)
+			if (!progress.hideout[key]?.completed) continue
+			if (!level.requirementItemIds) continue
+
+			for (const entry of level.requirementItemIds) {
+				completed[entry.itemId] = (completed[entry.itemId] || 0) + entry.quantity
+			}
+		}
+	}
+
+	// Aggregate completed project phase requirements
+	for (const project of projects) {
+		for (const phase of project.phases) {
+			// Check if this specific phase is completed
+			const key = getProjectKey(project.id, phase.phase)
+			if (!progress.projects[key]?.completed) continue
+			if (!phase.requirementItemIds) continue
+
+			for (const entry of phase.requirementItemIds) {
+				completed[entry.itemId] = (completed[entry.itemId] || 0) + entry.quantity
+			}
+		}
+	}
+
+	return completed
+}
+
+/**
+ * Calculates remaining requirements by subtracting completed from total.
+ * Only includes items with positive remaining quantities.
+ *
+ * @param total - Total item requirements
+ * @param completed - Completed item requirements
+ * @returns Map of itemId -> remaining quantity (only positive values)
+ */
+export function calculateRemainingRequirements(
+	total: ItemRequirements,
+	completed: ItemRequirements
+): ItemRequirements {
+	const remaining: ItemRequirements = {}
+
+	for (const [itemId, totalQuantity] of Object.entries(total)) {
+		const completedQuantity = completed[itemId] || 0
+		const remainingQuantity = Math.max(0, totalQuantity - completedQuantity)
+
+		// Only include items with positive remaining
+		if (remainingQuantity > 0) {
+			remaining[itemId] = remainingQuantity
+		}
+	}
+
+	return remaining
 }

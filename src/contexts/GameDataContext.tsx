@@ -73,15 +73,13 @@ export function GameDataProvider({ children }: GameDataProviderProps) {
 				setError(null)
 
 				// Fetch all data in parallel
-				const [rawItems, quests, hideoutModules, projects, traders] = await Promise.all(
-					[
-						fetchJson<Item[]>('/data/items.json'),
-						fetchJson<Quest[]>('/data/quests.json'),
-						fetchJson<HideoutModule[]>('/data/hideoutModules.json'),
-						fetchJson<Project[]>('/data/projects.json'),
-						fetchJson<TradersData>('/data/traders.json'),
-					]
-				)
+				const [rawItems, quests, hideoutModules, projects, traders] = await Promise.all([
+					fetchJson<Item[]>('/data/items.json'),
+					fetchJson<Quest[]>('/data/quests.json'),
+					fetchJson<HideoutModule[]>('/data/hideoutModules.json'),
+					fetchJson<Project[]>('/data/projects.json'),
+					fetchJson<TradersData>('/data/traders.json'),
+				])
 
 				// Normalize items to use game's category types
 				const items = normalizeItems(rawItems)
