@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
-import type { GameProgress, QuestProgress } from '../data/types'
+import type { GameProgress } from '../data/types'
 import { getHideoutKey, getProjectKey } from '../utils/progressKeys'
 
 interface ProgressStore {
@@ -45,56 +45,6 @@ const isValidProjectPhase = (projectId: string, phase: number): boolean => {
 	return typeof projectId === 'string' && projectId.length > 0 && typeof phase === 'number' && phase > 0
 }
 
-/**
- * Generic helper to create completion action
- * Reduces duplication across quest/hideout/project completion logic
- */
-const createCompleteAction = <T extends { completed: boolean; completedAt: string | null }>(
-	collectionKey: keyof GameProgress,
-	key: string,
-	entry: T
-) => {
-	return (state: { progress: GameProgress }) => ({
-		progress: {
-			...state.progress,
-			[collectionKey]: {
-				...state.progress[collectionKey],
-				[key]: {
-					...entry,
-					completed: true,
-					completedAt: new Date().toISOString(),
-				},
-			},
-		},
-	})
-}
-
-/**
- * Generic helper to create uncomplete action
- * Reduces duplication across quest/hideout/project uncomplete logic
- */
-const createUncompleteAction = (collectionKey: keyof GameProgress, key: string) => {
-	return (state: { progress: GameProgress }) => {
-		const collection = state.progress[collectionKey] as Record<string, unknown>
-		const { [key]: removed, ...remaining } = collection
-		return {
-			progress: {
-				...state.progress,
-				[collectionKey]: remaining,
-			},
-		}
-	}
-}
-
-/**
- * Generic helper to check completion status
- * Reduces duplication across quest/hideout/project query logic
- */
-const isCompleted = (state: GameProgress, collectionKey: keyof GameProgress, key: string): boolean => {
-	const collection = state[collectionKey] as Record<string, { completed?: boolean }>
-	return collection[key]?.completed ?? false
-}
-
 export const useProgressStore = create<ProgressStore>()(
 	persist(
 		(set, get) => ({
@@ -102,49 +52,115 @@ export const useProgressStore = create<ProgressStore>()(
 
 			completeQuest: (questId) => {
 				if (!isValidQuestId(questId)) return
-				set(createCompleteAction('quests', questId, { questId, completed: false, completedAt: null }))
+				set((state) => ({
+					progress: {
+						...state.progress,
+						quests: {
+							...state.progress.quests,
+							[questId]: {
+								questId,
+								completed: true,
+								completedAt: new Date().toISOString(),
+							},
+						},
+					},
+				}))
 			},
 
 			uncompleteQuest: (questId) => {
 				if (!isValidQuestId(questId)) return
-				set(createUncompleteAction('quests', questId))
+				set((state) => {
+					const { [questId]: removed, ...remainingQuests } = state.progress.quests
+					return {
+						progress: {
+							...state.progress,
+							quests: remainingQuests,
+						},
+					}
+				})
 			},
 
 			isQuestCompleted: (questId) => {
 				if (!isValidQuestId(questId)) return false
-				return isCompleted(get().progress, 'quests', questId)
+				return get().progress.quests[questId]?.completed ?? false
 			},
 
 			completeHideoutLevel: (moduleId, level) => {
 				if (!isValidHideoutLevel(moduleId, level)) return
 				const key = getHideoutKey(moduleId, level)
-				set(createCompleteAction('hideout', key, { moduleId, level, completed: false, completedAt: null }))
+				set((state) => ({
+					progress: {
+						...state.progress,
+						hideout: {
+							...state.progress.hideout,
+							[key]: {
+								moduleId,
+								level,
+								completed: true,
+								completedAt: new Date().toISOString(),
+							},
+						},
+					},
+				}))
 			},
 
 			uncompleteHideoutLevel: (moduleId, level) => {
 				if (!isValidHideoutLevel(moduleId, level)) return
-				set(createUncompleteAction('hideout', getHideoutKey(moduleId, level)))
+				const key = getHideoutKey(moduleId, level)
+				set((state) => {
+					const { [key]: removed, ...remainingHideout } = state.progress.hideout
+					return {
+						progress: {
+							...state.progress,
+							hideout: remainingHideout,
+						},
+					}
+				})
 			},
 
 			isHideoutLevelCompleted: (moduleId, level) => {
 				if (!isValidHideoutLevel(moduleId, level)) return false
-				return isCompleted(get().progress, 'hideout', getHideoutKey(moduleId, level))
+				const key = getHideoutKey(moduleId, level)
+				return get().progress.hideout[key]?.completed ?? false
 			},
 
 			completeProjectPhase: (projectId, phase) => {
 				if (!isValidProjectPhase(projectId, phase)) return
 				const key = getProjectKey(projectId, phase)
-				set(createCompleteAction('projects', key, { projectId, phase, completed: false, completedAt: null }))
+				set((state) => ({
+					progress: {
+						...state.progress,
+						projects: {
+							...state.progress.projects,
+							[key]: {
+								projectId,
+								phase,
+								completed: true,
+								completedAt: new Date().toISOString(),
+							},
+						},
+					},
+				}))
 			},
 
 			uncompleteProjectPhase: (projectId, phase) => {
 				if (!isValidProjectPhase(projectId, phase)) return
-				set(createUncompleteAction('projects', getProjectKey(projectId, phase)))
+				const key = getProjectKey(projectId, phase)
+				set((state) => {
+					const { [key]: removed, ...remainingProjects } = state.progress.projects
+					return {
+						progress: {
+							...state.progress,
+							projects: remainingProjects,
+						},
+					}
+				})
 			},
 
 			isProjectPhaseCompleted: (projectId, phase) => {
 				if (!isValidProjectPhase(projectId, phase)) return false
-				return isCompleted(get().progress, 'projects', getProjectKey(projectId, phase))
+				const key = getProjectKey(projectId, phase)
+				return get().progress.projects[key]?.completed ?? false
 			},
 
 			reset: () => set({ progress: initialState }),

@@ -178,11 +178,11 @@ describe('progressStore - Input Validation & Edge Cases', () => {
 	})
 
 	it('should handle completing the same quest multiple times', () => {
-		const { completeQuest, progress } = useProgressStore.getState()
+		const { completeQuest } = useProgressStore.getState()
 
 		completeQuest('quest-001')
 		const { progress: progress1 } = useProgressStore.getState()
-		const firstTimestamp = progress1.quests['quest-001'].completedAt
+		progress1.quests['quest-001'].completedAt
 
 		// Wait a tiny bit then complete again
 		completeQuest('quest-001')

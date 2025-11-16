@@ -8,19 +8,10 @@ export default defineConfig({
 		environment: 'jsdom',
 		globals: true,
 		setupFiles: [],
-		// Prevent hanging by configuring proper pool and timeouts
-		pool: 'forks',
-		poolOptions: {
-			forks: {
-				singleFork: true,
-			},
-		},
 		// Set reasonable timeouts
 		testTimeout: 10000,
 		hookTimeout: 10000,
 		teardownTimeout: 5000,
-		// Ensure clean exit
-		isolate: true,
 		// Better error handling
 		passWithNoTests: false,
 		// Coverage configuration (optional)
