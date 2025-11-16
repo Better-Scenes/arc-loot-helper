@@ -1,81 +1,86 @@
 'use client'
 
 import * as Headless from '@headlessui/react'
-import React, { useState } from 'react'
-import { NavbarItem } from './navbar'
+import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline'
+import clsx from 'clsx'
+import React from 'react'
 
-function OpenMenuIcon() {
-	return (
-		<svg data-slot="icon" viewBox="0 0 20 20" aria-hidden="true">
-			<path d="M2 6.75C2 6.33579 2.33579 6 2.75 6H17.25C17.6642 6 18 6.33579 18 6.75C18 7.16421 17.6642 7.5 17.25 7.5H2.75C2.33579 7.5 2 7.16421 2 6.75ZM2 13.25C2 12.8358 2.33579 12.5 2.75 12.5H17.25C17.6642 12.5 18 12.8358 18 13.25C18 13.6642 17.6642 14 17.25 14H2.75C2.33579 14 2 13.6642 2 13.25Z" />
-		</svg>
-	)
-}
-
-function CloseMenuIcon() {
-	return (
-		<svg data-slot="icon" viewBox="0 0 20 20" aria-hidden="true">
-			<path d="M6.28 5.22a.75.75 0 0 0-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 1 0 1.06 1.06L10 11.06l3.72 3.72a.75.75 0 1 0 1.06-1.06L11.06 10l3.72-3.72a.75.75 0 0 0-1.06-1.06L10 8.94 6.28 5.22Z" />
-		</svg>
-	)
-}
-
-function MobileSidebar({
-	open,
-	close,
-	children,
-}: React.PropsWithChildren<{ open: boolean; close: () => void }>) {
-	return (
-		<Headless.Dialog open={open} onClose={close} className="lg:hidden">
-			<Headless.DialogBackdrop
-				transition
-				className="fixed inset-0 bg-black/30 transition data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in"
-			/>
-			<Headless.DialogPanel
-				transition
-				className="fixed inset-y-0 w-full max-w-80 p-2 transition duration-300 ease-in-out data-closed:-translate-x-full"
-			>
-				<div className="flex h-full flex-col rounded-lg bg-white shadow-xs ring-1 ring-zinc-950/5 dark:bg-zinc-900 dark:ring-white/10">
-					<div className="-mb-3 px-4 pt-3">
-						<Headless.CloseButton as={NavbarItem} aria-label="Close navigation">
-							<CloseMenuIcon />
-						</Headless.CloseButton>
-					</div>
-					{children}
-				</div>
-			</Headless.DialogPanel>
-		</Headless.Dialog>
-	)
-}
+type StackedLayoutProps = React.PropsWithChildren<{
+	navbar: React.ReactNode
+	/** Mobile menu navigation items */
+	mobileNav?: React.ReactNode
+	/** Optional header content shown below the navbar on colored background */
+	header?: React.ReactNode
+	/** Optional className for the colored header section */
+	headerClassName?: string
+}>
 
 export function StackedLayout({
 	navbar,
-	sidebar,
+	mobileNav,
+	header,
+	headerClassName,
 	children,
-}: React.PropsWithChildren<{ navbar: React.ReactNode; sidebar: React.ReactNode }>) {
-	const [showSidebar, setShowSidebar] = useState(false)
-
+}: StackedLayoutProps) {
 	return (
-		<div className="relative isolate flex min-h-svh w-full flex-col bg-white lg:bg-zinc-100 dark:bg-zinc-900 dark:lg:bg-zinc-950">
-			{/* Sidebar on mobile */}
-			<MobileSidebar open={showSidebar} close={() => setShowSidebar(false)}>
-				{sidebar}
-			</MobileSidebar>
+		<div className="min-h-full">
+			{/* Colored header section */}
+			<div className={clsx('pb-32', headerClassName || 'bg-indigo-600 dark:bg-indigo-950')}>
+				{/* Navbar */}
+				<Headless.Disclosure
+					as="nav"
+					className={clsx(
+						'border-b border-indigo-300/25 lg:border-none dark:border-indigo-400/25',
+						headerClassName || 'bg-indigo-600 dark:bg-indigo-950'
+					)}
+				>
+					<div className="mx-auto max-w-7xl px-2 sm:px-4 lg:px-8">
+						<div className="relative flex h-16 items-center justify-between lg:border-b lg:border-indigo-400/25 dark:lg:border-indigo-400/25">
+							{navbar}
 
-			{/* Navbar */}
-			<header className="flex items-center px-4">
-				<div className="py-2.5 lg:hidden">
-					<NavbarItem onClick={() => setShowSidebar(true)} aria-label="Open navigation">
-						<OpenMenuIcon />
-					</NavbarItem>
-				</div>
-				<div className="min-w-0 flex-1">{navbar}</div>
-			</header>
+							{/* Mobile menu button */}
+							{mobileNav && (
+								<div className="flex lg:hidden">
+									<Headless.DisclosureButton
+										className={clsx(
+											'group relative inline-flex items-center justify-center rounded-md p-2',
+											'bg-indigo-600 text-indigo-200 hover:bg-indigo-500/75 hover:text-white',
+											'focus:outline-2 focus:outline-offset-2 focus:outline-white',
+											'dark:bg-indigo-950 dark:hover:bg-indigo-900/75'
+										)}
+									>
+										<span className="absolute -inset-0.5" />
+										<span className="sr-only">Open main menu</span>
+										<Bars3Icon aria-hidden="true" className="block size-6 group-data-open:hidden" />
+										<XMarkIcon aria-hidden="true" className="hidden size-6 group-data-open:block" />
+									</Headless.DisclosureButton>
+								</div>
+							)}
+						</div>
+					</div>
 
-			{/* Content */}
-			<main className="flex flex-1 flex-col pb-2 lg:px-2">
-				<div className="grow p-6 lg:rounded-lg lg:bg-white lg:p-10 lg:shadow-xs lg:ring-1 lg:ring-zinc-950/5 dark:lg:bg-zinc-900 dark:lg:ring-white/10">
-					<div className="mx-auto max-w-6xl">{children}</div>
+					{/* Mobile menu panel */}
+					{mobileNav && (
+						<Headless.DisclosurePanel className="lg:hidden">
+							<div className="space-y-1 px-2 pt-2 pb-3">{mobileNav}</div>
+						</Headless.DisclosurePanel>
+					)}
+				</Headless.Disclosure>
+
+				{/* Optional header section */}
+				{header && (
+					<header className="py-10">
+						<div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">{header}</div>
+					</header>
+				)}
+			</div>
+
+			{/* Main content with negative margin */}
+			<main className="-mt-32">
+				<div className="mx-auto max-w-7xl px-4 pb-12 sm:px-6 lg:px-8">
+					<div className="rounded-lg bg-white px-5 py-6 shadow-sm sm:px-6 dark:bg-zinc-800 dark:shadow-none dark:outline-1 dark:-outline-offset-1 dark:outline-white/10">
+						{children}
+					</div>
 				</div>
 			</main>
 		</div>
