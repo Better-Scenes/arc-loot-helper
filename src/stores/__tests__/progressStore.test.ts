@@ -164,16 +164,22 @@ describe('progressStore - Input Validation & Edge Cases', () => {
 	it('should handle null quest ID gracefully', () => {
 		const { completeQuest, isQuestCompleted } = useProgressStore.getState()
 
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		expect(() => completeQuest(null as any)).not.toThrow()
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		expect(() => isQuestCompleted(null as any)).not.toThrow()
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		expect(isQuestCompleted(null as any)).toBe(false)
 	})
 
 	it('should handle undefined quest ID gracefully', () => {
 		const { completeQuest, isQuestCompleted } = useProgressStore.getState()
 
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		expect(() => completeQuest(undefined as any)).not.toThrow()
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		expect(() => isQuestCompleted(undefined as any)).not.toThrow()
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		expect(isQuestCompleted(undefined as any)).toBe(false)
 	})
 
@@ -182,7 +188,7 @@ describe('progressStore - Input Validation & Edge Cases', () => {
 
 		completeQuest('quest-001')
 		const { progress: progress1 } = useProgressStore.getState()
-		progress1.quests['quest-001'].completedAt
+		const firstTimestamp = progress1.quests['quest-001'].completedAt
 
 		// Wait a tiny bit then complete again
 		completeQuest('quest-001')
@@ -192,14 +198,20 @@ describe('progressStore - Input Validation & Edge Cases', () => {
 		// Should still be completed and timestamp should be updated
 		expect(progress2.quests['quest-001'].completed).toBe(true)
 		// Note: timestamps might be the same if execution is too fast, so we just verify it exists
+		expect(firstTimestamp).toBeTruthy()
 		expect(secondTimestamp).toBeTruthy()
 	})
 
 	it('should handle special characters in quest IDs', () => {
 		const { completeQuest, isQuestCompleted } = useProgressStore.getState()
-		const specialIds = ['quest-with-dashes', 'quest_with_underscores', 'quest.with.dots', 'quest:with:colons']
+		const specialIds = [
+			'quest-with-dashes',
+			'quest_with_underscores',
+			'quest.with.dots',
+			'quest:with:colons',
+		]
 
-		specialIds.forEach((id) => {
+		specialIds.forEach(id => {
 			completeQuest(id)
 			expect(isQuestCompleted(id)).toBe(true)
 		})

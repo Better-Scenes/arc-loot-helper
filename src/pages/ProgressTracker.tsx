@@ -4,7 +4,6 @@
  */
 
 import { useState, useMemo } from 'react'
-import { Heading } from '../components/heading'
 import { Text } from '../components/text'
 import { Switch } from '../components/switch'
 import { useGameData } from '../hooks/useGameData'

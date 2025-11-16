@@ -4,7 +4,13 @@ import {
 	calculateRemainingRequirements,
 	calculateItemRequirements,
 } from '../itemRequirements'
-import type { GameProgress, Quest, HideoutModule, Project, ItemRequirements } from '../../data/types'
+import type {
+	GameProgress,
+	Quest,
+	HideoutModule,
+	Project,
+	ItemRequirements,
+} from '../../data/types'
 
 describe('itemRequirements - Completed Calculations', () => {
 	const mockProgress: GameProgress = {

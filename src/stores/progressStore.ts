@@ -35,14 +35,18 @@ const isValidQuestId = (questId: string): boolean => {
  * Validates hideout level inputs
  */
 const isValidHideoutLevel = (moduleId: string, level: number): boolean => {
-	return typeof moduleId === 'string' && moduleId.length > 0 && typeof level === 'number' && level > 0
+	return (
+		typeof moduleId === 'string' && moduleId.length > 0 && typeof level === 'number' && level > 0
+	)
 }
 
 /**
  * Validates project phase inputs
  */
 const isValidProjectPhase = (projectId: string, phase: number): boolean => {
-	return typeof projectId === 'string' && projectId.length > 0 && typeof phase === 'number' && phase > 0
+	return (
+		typeof projectId === 'string' && projectId.length > 0 && typeof phase === 'number' && phase > 0
+	)
 }
 
 export const useProgressStore = create<ProgressStore>()(
@@ -50,9 +54,9 @@ export const useProgressStore = create<ProgressStore>()(
 		(set, get) => ({
 			progress: initialState,
 
-			completeQuest: (questId) => {
+			completeQuest: questId => {
 				if (!isValidQuestId(questId)) return
-				set((state) => ({
+				set(state => ({
 					progress: {
 						...state.progress,
 						quests: {
@@ -67,10 +71,10 @@ export const useProgressStore = create<ProgressStore>()(
 				}))
 			},
 
-			uncompleteQuest: (questId) => {
+			uncompleteQuest: questId => {
 				if (!isValidQuestId(questId)) return
-				set((state) => {
-					const { [questId]: removed, ...remainingQuests } = state.progress.quests
+				set(state => {
+					const { [questId]: _, ...remainingQuests } = state.progress.quests
 					return {
 						progress: {
 							...state.progress,
@@ -80,7 +84,7 @@ export const useProgressStore = create<ProgressStore>()(
 				})
 			},
 
-			isQuestCompleted: (questId) => {
+			isQuestCompleted: questId => {
 				if (!isValidQuestId(questId)) return false
 				return get().progress.quests[questId]?.completed ?? false
 			},
@@ -88,7 +92,7 @@ export const useProgressStore = create<ProgressStore>()(
 			completeHideoutLevel: (moduleId, level) => {
 				if (!isValidHideoutLevel(moduleId, level)) return
 				const key = getHideoutKey(moduleId, level)
-				set((state) => ({
+				set(state => ({
 					progress: {
 						...state.progress,
 						hideout: {
@@ -107,8 +111,8 @@ export const useProgressStore = create<ProgressStore>()(
 			uncompleteHideoutLevel: (moduleId, level) => {
 				if (!isValidHideoutLevel(moduleId, level)) return
 				const key = getHideoutKey(moduleId, level)
-				set((state) => {
-					const { [key]: removed, ...remainingHideout } = state.progress.hideout
+				set(state => {
+					const { [key]: _, ...remainingHideout } = state.progress.hideout
 					return {
 						progress: {
 							...state.progress,
@@ -127,7 +131,7 @@ export const useProgressStore = create<ProgressStore>()(
 			completeProjectPhase: (projectId, phase) => {
 				if (!isValidProjectPhase(projectId, phase)) return
 				const key = getProjectKey(projectId, phase)
-				set((state) => ({
+				set(state => ({
 					progress: {
 						...state.progress,
 						projects: {
@@ -146,8 +150,8 @@ export const useProgressStore = create<ProgressStore>()(
 			uncompleteProjectPhase: (projectId, phase) => {
 				if (!isValidProjectPhase(projectId, phase)) return
 				const key = getProjectKey(projectId, phase)
-				set((state) => {
-					const { [key]: removed, ...remainingProjects } = state.progress.projects
+				set(state => {
+					const { [key]: _, ...remainingProjects } = state.progress.projects
 					return {
 						progress: {
 							...state.progress,

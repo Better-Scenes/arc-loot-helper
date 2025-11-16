@@ -107,9 +107,9 @@ function fetchJSON(url) {
  * @param {string} itemId - Item ID to transform
  * @returns {string} Transformed item ID
  */
-function transformItemId(itemId) {
-	return itemId.replace(/_/g, '-')
-}
+// function transformItemId(itemId) {
+// 	return itemId.replace(/_/g, '-')
+// }
 
 /**
  * Convert GitHub quest ID to MetaForge quest ID format
@@ -122,7 +122,10 @@ function getQuestId(questData) {
 	if (!questData.name || !questData.name.en) {
 		throw new Error('Quest missing English name')
 	}
-	return questData.name.en.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
+	return questData.name.en
+		.toLowerCase()
+		.replace(/\s+/g, '-')
+		.replace(/[^a-z0-9-]/g, '')
 }
 
 /**

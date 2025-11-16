@@ -56,7 +56,10 @@ export function ProjectProgressItem({
 						<UncompleteButton onUncomplete={() => onUncompletePhase(project.id, currentPhase)} />
 					)}
 					{!isComplete && phaseData && (
-						<CompletionButton isCompleted={false} onToggle={() => onCompletePhase(project.id, nextPhase)} />
+						<CompletionButton
+							isCompleted={false}
+							onToggle={() => onCompletePhase(project.id, nextPhase)}
+						/>
 					)}
 				</div>
 			</div>
@@ -64,7 +67,9 @@ export function ProjectProgressItem({
 			{/* Next Phase Requirements */}
 			{!isComplete && phaseData && (
 				<div>
-					<p className="mb-2 text-sm font-medium text-zinc-400">Requirements for {phaseData.name.en}:</p>
+					<p className="mb-2 text-sm font-medium text-zinc-400">
+						Requirements for {phaseData.name.en}:
+					</p>
 
 					{phaseData.requirementItemIds && phaseData.requirementItemIds.length > 0 ? (
 						<RequiredItemsList

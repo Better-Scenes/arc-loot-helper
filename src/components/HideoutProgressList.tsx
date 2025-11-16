@@ -15,7 +15,11 @@ interface HideoutProgressListProps {
 	hideCompleted: boolean
 }
 
-export function HideoutProgressList({ modules, allItems, hideCompleted }: HideoutProgressListProps) {
+export function HideoutProgressList({
+	modules,
+	allItems,
+	hideCompleted,
+}: HideoutProgressListProps) {
 	// Subscribe to progress data to trigger re-renders when it changes
 	const progress = useProgressStore(state => state.progress)
 

@@ -37,7 +37,12 @@ export function RequiredItemsList({
 						key={itemId}
 						className="flex items-center gap-1.5 rounded-md border border-white/10 bg-zinc-900 px-2 py-1"
 					>
-						<ItemIcon imageUrl={item?.imageFilename} itemName={item?.name?.en || itemId} rarity={item?.rarity} size="sm" />
+						<ItemIcon
+							imageUrl={item?.imageFilename}
+							itemName={item?.name?.en || itemId}
+							rarity={item?.rarity}
+							size="sm"
+						/>
 						<span className={`text-sm ${isComplete ? 'text-zinc-500 line-through' : 'text-white'}`}>
 							{item?.name?.en || itemId}
 						</span>

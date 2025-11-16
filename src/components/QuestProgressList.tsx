@@ -42,7 +42,9 @@ export function QuestProgressList({ quests, allItems, hideCompleted }: QuestProg
 			}
 
 			// Show only if ALL prerequisites are completed
-			const allPrereqsComplete = quest.previousQuestIds.every(prereqId => isQuestCompleted(prereqId))
+			const allPrereqsComplete = quest.previousQuestIds.every(prereqId =>
+				isQuestCompleted(prereqId)
+			)
 
 			return allPrereqsComplete
 		})
@@ -61,7 +63,7 @@ export function QuestProgressList({ quests, allItems, hideCompleted }: QuestProg
 		}
 
 		// Sort quests within each trader group by name
-		grouped.forEach((quests) => {
+		grouped.forEach(quests => {
 			quests.sort((a, b) => a.name.en.localeCompare(b.name.en))
 		})
 
@@ -85,7 +87,9 @@ export function QuestProgressList({ quests, allItems, hideCompleted }: QuestProg
 		<div className="space-y-6">
 			{questsByTrader.map(([trader, traderQuests]) => (
 				<div key={trader}>
-					<h3 className="mb-3 text-sm font-medium uppercase tracking-wide text-zinc-400">{trader}</h3>
+					<h3 className="mb-3 text-sm font-medium uppercase tracking-wide text-zinc-400">
+						{trader}
+					</h3>
 					<div className="space-y-3">
 						{traderQuests.map(quest => (
 							<QuestProgressItem

@@ -7,13 +7,7 @@ import { describe, it, expect } from 'vitest'
 import { renderHook } from '@testing-library/react'
 import type { ReactNode } from 'react'
 import { GameDataProvider } from '../contexts/GameDataContext'
-import {
-	useGameData,
-	useItems,
-	useQuests,
-	useHideoutModules,
-	useProjects,
-} from './useGameData'
+import { useGameData, useItems, useQuests, useHideoutModules, useProjects } from './useGameData'
 
 /**
  * Test wrapper that provides the GameDataContext

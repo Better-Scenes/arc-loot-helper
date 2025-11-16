@@ -40,15 +40,16 @@ async function fetchAPIData() {
 
 	try {
 		// Fetch all data in parallel
-		const [items, quests, arcs, tradersResponse, hideoutModules, projects, questChains] = await Promise.all([
-			fetchPaginated('/items', { limit: 100 }, { includeComponents: true }),
-			fetchPaginated('/quests', { limit: 50 }),
-			fetchPaginated('/arcs', { limit: 50 }),
-			fetchSingle('/traders'),
-			fetchHideoutModules(),
-			fetchProjects(),
-			fetchQuestChains(),
-		])
+		const [items, quests, arcs, tradersResponse, hideoutModules, projects, questChains] =
+			await Promise.all([
+				fetchPaginated('/items', { limit: 100 }, { includeComponents: true }),
+				fetchPaginated('/quests', { limit: 50 }),
+				fetchPaginated('/arcs', { limit: 50 }),
+				fetchSingle('/traders'),
+				fetchHideoutModules(),
+				fetchProjects(),
+				fetchQuestChains(),
+			])
 
 		console.log('\n📊 API Data Summary:')
 		console.log(`   • Items: ${items.length}`)
@@ -181,8 +182,12 @@ function transformData(apiData) {
 	})
 
 	// Normalize quest name for matching (lowercase, remove punctuation)
-	const normalizeQuestName = (name) => {
-		return name.toLowerCase().replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, ' ').trim()
+	const normalizeQuestName = name => {
+		return name
+			.toLowerCase()
+			.replace(/[^a-z0-9\s]/g, '')
+			.replace(/\s+/g, ' ')
+			.trim()
 	}
 
 	// Transform quests: merge API data with GitHub chain data
@@ -204,15 +209,21 @@ function transformData(apiData) {
 			const transformed = {
 				id: quest.id,
 				name: { en: quest.name },
-				objectives: Array.isArray(quest.objectives) ? quest.objectives.map(obj => ({ en: obj })) : [],
+				objectives: Array.isArray(quest.objectives)
+					? quest.objectives.map(obj => ({ en: obj }))
+					: [],
 				xp: quest.xp || 0,
 				requiredItemIds: convertQuestRequirements(quest.required_items),
 				rewardItemIds: convertQuestRewards(quest.rewards),
 				// Add chain data from GitHub
 				trader: chainData?.trader,
 				// Convert quest names in previousQuestIds back to API IDs (using normalized names)
-				previousQuestIds: chainData?.previousQuestIds?.map(name => normalizedNameToId.get(normalizeQuestName(name)) || name),
-				nextQuestIds: chainData?.nextQuestIds?.map(name => normalizedNameToId.get(normalizeQuestName(name)) || name),
+				previousQuestIds: chainData?.previousQuestIds?.map(
+					name => normalizedNameToId.get(normalizeQuestName(name)) || name
+				),
+				nextQuestIds: chainData?.nextQuestIds?.map(
+					name => normalizedNameToId.get(normalizeQuestName(name)) || name
+				),
 				updatedAt: chainData?.updatedAt,
 			}
 

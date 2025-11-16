@@ -144,9 +144,7 @@ export function VirtualizedItemList({
 					if (row.type === 'tableHeader') {
 						// Find the group this table header belongs to (previous row should be a header)
 						const prevRow = virtualRows[virtualRow.index - 1]
-						const groupTitle = prevRow && prevRow.type === 'header'
-							? prevRow.groupTitle
-							: 'unknown'
+						const groupTitle = prevRow && prevRow.type === 'header' ? prevRow.groupTitle : 'unknown'
 						return (
 							<div
 								key={`table-header-${groupTitle}`}

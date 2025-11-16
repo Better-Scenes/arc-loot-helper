@@ -12,7 +12,11 @@ interface CompletionButtonProps {
 	disabled?: boolean
 }
 
-export function CompletionButton({ isCompleted, onToggle, disabled = false }: CompletionButtonProps) {
+export function CompletionButton({
+	isCompleted,
+	onToggle,
+	disabled = false,
+}: CompletionButtonProps) {
 	return (
 		<Button
 			color={isCompleted ? 'green' : 'blue'}

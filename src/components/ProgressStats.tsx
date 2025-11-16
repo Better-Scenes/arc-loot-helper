@@ -24,7 +24,9 @@ export function ProgressStats({ stats }: ProgressStatsProps) {
 		<div className="rounded-lg border border-white/10 bg-zinc-900 p-6">
 			<div className="mb-4 flex items-center justify-between">
 				<Text className="text-lg font-semibold text-white">Overall Progress</Text>
-				<Badge color={overallPercentage === 100 ? 'green' : 'blue'}>{overallPercentage}% Complete</Badge>
+				<Badge color={overallPercentage === 100 ? 'green' : 'blue'}>
+					{overallPercentage}% Complete
+				</Badge>
 			</div>
 
 			<div className="grid gap-4 sm:grid-cols-3">

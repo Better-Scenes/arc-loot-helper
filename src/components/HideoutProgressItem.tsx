@@ -56,7 +56,10 @@ export function HideoutProgressItem({
 						<UncompleteButton onUncomplete={() => onUncompleteLevel(module.id, currentLevel)} />
 					)}
 					{!isMaxLevel && levelData && (
-						<CompletionButton isCompleted={false} onToggle={() => onCompleteLevel(module.id, nextLevel)} />
+						<CompletionButton
+							isCompleted={false}
+							onToggle={() => onCompleteLevel(module.id, nextLevel)}
+						/>
 					)}
 				</div>
 			</div>
@@ -64,7 +67,9 @@ export function HideoutProgressItem({
 			{/* Next Level Requirements */}
 			{!isMaxLevel && levelData && (
 				<div>
-					<p className="mb-2 text-sm font-medium text-zinc-400">Requirements for Level {nextLevel}:</p>
+					<p className="mb-2 text-sm font-medium text-zinc-400">
+						Requirements for Level {nextLevel}:
+					</p>
 
 					{levelData.requirementItemIds && levelData.requirementItemIds.length > 0 ? (
 						<RequiredItemsList
@@ -92,7 +97,9 @@ export function HideoutProgressItem({
 				</div>
 			)}
 
-			{isMaxLevel && <div className="text-sm font-medium text-green-500">✓ Maximum level reached</div>}
+			{isMaxLevel && (
+				<div className="text-sm font-medium text-green-500">✓ Maximum level reached</div>
+			)}
 		</div>
 	)
 }

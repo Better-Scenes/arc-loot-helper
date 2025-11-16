@@ -20,8 +20,8 @@ import { useRemainingRequirementsStore } from '../stores/remainingRequirementsSt
  */
 export function useSyncRemainingRequirements(): void {
 	const { data } = useGameData()
-	const progress = useProgressStore((state) => state.progress)
-	const calculate = useRemainingRequirementsStore((state) => state.calculate)
+	const progress = useProgressStore(state => state.progress)
+	const calculate = useRemainingRequirementsStore(state => state.calculate)
 
 	useEffect(() => {
 		calculate(data, progress)

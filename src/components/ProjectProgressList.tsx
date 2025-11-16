@@ -15,7 +15,11 @@ interface ProjectProgressListProps {
 	hideCompleted: boolean
 }
 
-export function ProjectProgressList({ projects, allItems, hideCompleted }: ProjectProgressListProps) {
+export function ProjectProgressList({
+	projects,
+	allItems,
+	hideCompleted,
+}: ProjectProgressListProps) {
 	// Subscribe to progress data to trigger re-renders when it changes
 	const progress = useProgressStore(state => state.progress)
 

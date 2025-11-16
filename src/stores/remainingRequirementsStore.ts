@@ -42,7 +42,7 @@ export const useRemainingRequirementsStore = create<RemainingRequirementsStore>(
 		set({ remaining })
 	},
 
-	getQuantityNeeded: (itemId) => {
+	getQuantityNeeded: itemId => {
 		return get().remaining?.[itemId] ?? 0
 	},
 }))
